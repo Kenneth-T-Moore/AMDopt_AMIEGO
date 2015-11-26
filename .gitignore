@@ -1,0 +1,5 @@
+*.py~
+*.pyc
+run_*
+res*
+packages_path.txt

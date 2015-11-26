@@ -1,0 +1,91 @@
+from __future__ import division
+import numpy
+
+from MAUD.core import ExplicitComponent, Assembly, IndVar
+
+
+class SysAeroSolver(ExplicitComponent):
+
+    def initialize(self):
+        nTwist = self.kwargs['nTwist']
+
+        self.add_input('twist', range(nTwist))
+        self.add_input('alpha', [0])
+        self.add_output('cl', 1.0)
+        self.add_output('cd', 1.0)
+
+        if self.comm is not None:
+            self.kwargs['CFDSolver'] = self.kwargs['init_func'](self.comm, self.kwargs['DVGeo'])
+
+    def oper_execute(self):
+        ap = self.kwargs['ap']
+        DVGeo = self.kwargs['DVGeo']
+        CFDSolver = self.kwargs['CFDSolver']
+
+        dv_dict = {}
+        dv_dict['twist'] = self.pvec['twist'][:, 0]
+        dv_dict[ap.DVNames['alpha']] = self.pvec['alpha'][0, 0]
+
+        DVGeo.setDesignVars(dv_dict)
+        ap.setDesignVars(dv_dict)
+
+        func_dict = {}
+        CFDSolver(ap)
+        CFDSolver.evalFunctions(ap, func_dict)
+
+        for name in ['cl', 'cd']:
+            self.uvec[name][0, 0] = func_dict[ap[name]]
+
+    def oper_jacobians(self):
+        ap = self.kwargs['ap']
+        DVGeo = self.kwargs['DVGeo']
+        CFDSolver = self.kwargs['CFDSolver']
+
+        sens_dict = {}
+        CFDSolver.evalFunctionsSens(ap, sens_dict)
+
+        for vout in ['cl', 'cd']:
+            vin = 'twist'
+            self.jacobians[vout, vin] = sens_dict[ap[vout]][vin]
+            vin = 'alpha'
+            self.jacobians[vout, vin] = sens_dict[ap[vout]][ap.DVNames[vin]]
+
+
+class SysObj(ExplicitComponent):
+
+    def initialize(self):
+        npt = self.kwargs['npt']
+
+        for ipt in xrange(npt):
+            self.add_input('fc%02i.cd'%ipt, [0])
+
+        self.add_output('obj', 1.0)
+
+    def oper_execute(self):
+        npt = self.kwargs['npt']
+
+        obj = 0
+        for ipt in xrange(npt):
+            obj += self.pvec['fc%02i.cd'%ipt][0, 0]
+        self.uvec['obj'][0, 0] = obj
+
+    def oper_jacobians(self):
+        npt = self.kwargs['npt']
+
+        for ipt in xrange(npt):
+            self.jacobians['obj', 'fc%02i.cd'%ipt] = 1.0
+
+
+class SysLiftCon(ExplicitComponent):
+
+    def initialize(self):
+        self.add_input('cl', [0])
+        self.add_output('cl_con', 1.0)
+
+    def oper_execute(self):
+        cl0 = self.kwargs['cl0']
+
+        self.uvec['cl_con'][0, 0] = self.pvec['cl'][0, 0] - cl0
+
+    def oper_jacobians(self):
+        self.jacobians['cl_con', 'cl'] = 1.0
