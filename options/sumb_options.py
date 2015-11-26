@@ -13,18 +13,18 @@ aeroOptions = {
     'CFLCoarse':CFL,
     'MGCycle':MGCYCLE,
     'MGStartLevel':MGSTART,
-    'nCyclesCoarse':1,#500,
-    'nCycles' :1,#nCycles,
+    'nCyclesCoarse':500,
+    'nCycles' :1000,
     'nsubiterturb':3,
     'useNKSolver':useNK,
-    'miniterationnum':1,#50,
+    'miniterationnum':50,
     
     # Convergence Parameters
-    'L2Convergence':1e-1,#6,
-    'L2ConvergenceCoarse':1e-1,#2,
+    'L2Convergence':1e-6,
+    'L2ConvergenceCoarse':1e-2,
     
     # Adjoint Parameters
-    'adjointL2Convergence':1e-1,#7,
+    'adjointL2Convergence':1e-7,
     'ADPC':True,
     'adjointMaxIter': 500,
     'adjointSubspaceSize':150, 

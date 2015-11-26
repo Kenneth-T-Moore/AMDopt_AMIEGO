@@ -14,8 +14,8 @@ from MissionAnalysis.mission import add_quantities_mission
 
 
 
-nA = 2
-nM = 2
+nA = 4
+nM = 4
 
 A_list0 = numpy.linspace(-0.02, 0.10, nA)
 M_list0 = numpy.linspace(0.67, 0.82, nM)
@@ -61,8 +61,8 @@ sys_aero_groups.nonlinear_solver = NLNsolverJC(ilimit=1)
 sys_aero_groups.linear_solver = LINsolverJC(ilimit=1)
 
 
-
-problem = 'problem_4rt_3ac_1new.py'
+problem = 'problem_32rt_3ac_1new.py'
+#problem = 'problem_4rt_3ac_1new.py'
 #problem = 'problem_128rt_4ac_1new.py'
 #problem = 'problem_3rt_2ac.py'
 
@@ -94,11 +94,11 @@ alloc = Allocation('sys_alloc', ac_path=ac_path, rt_data=rt_data,
 
 top = Assembly('sys_top', subsystems=[
     IndVar('twist', value=0*numpy.ones(nTwist)),
-#    sys_aero_groups,
-#    MultiPtVar('sys_multipt_lift', npt=npt,
-#               in_name='fc%02i.cl', out_name='CL_hifi'),
-#    MultiPtVar('sys_multipt_drag', npt=npt,
-#               in_name='fc%02i.cd', out_name='CD_hifi'),
+    sys_aero_groups,
+    MultiPtVar('sys_multipt_lift', npt=npt,
+               in_name='fc%02i.cl', out_name='CL_hifi'),
+    MultiPtVar('sys_multipt_drag', npt=npt,
+               in_name='fc%02i.cd', out_name='CD_hifi'),
     alloc,
 ])
 
@@ -140,6 +140,6 @@ fw.init_vectors()
 #exit()
 fw.compute()
 fw.init_driver(driver)
-fw.top.set_print(False)
-#fw.top.set_print(True)
+#fw.top.set_print(False)
+fw.top.set_print(True)
 fw.run()
