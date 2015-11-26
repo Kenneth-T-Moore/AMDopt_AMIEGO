@@ -35,11 +35,11 @@ elif args_mode == 'rans':
     execfile('options/rans_options.py')
     execfile('options/sumb_options.py')
 
-def init_func1(name, M):
+def init_func1(name, A, M):
     ap = AeroProblem(name=name, mach=M, altitude=10000,
-                     areaRef=45.5, alpha=1.5, chordRef=3.25,
+                     areaRef=45.5, alpha=A, chordRef=3.25,
                      evalFuncs=['cl', 'cd'])
-    ap.addDV('alpha', value=1.5, lower=0, upper=10.0, scale=0.1)
+    ap.addDV('alpha', value=A, lower=0, upper=10.0, scale=0.1)
     return ap
 
 def init_func2(comm, DVGeo):

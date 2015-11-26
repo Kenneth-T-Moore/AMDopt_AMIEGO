@@ -12,13 +12,13 @@ from MissionAnalysis.mission import add_quantities_mission
 
 
 
-
+r2d = 180.0 / numpy.pi
 
 nA = 4
 nM = 4
 
-A_list0 = numpy.linspace(-0.02, 0.10, nA)
-M_list0 = numpy.linspace(0.67, 0.82, nM)
+A_list0 = numpy.linspace(-1.0, 5.0, nA)
+M_list0 = numpy.linspace(0.6, 0.81, nM)
 
 A_list = []
 M_list = []
@@ -41,7 +41,7 @@ DVGeo = init_func3(nTwist)
 
 aero_groups = []
 for ipt in xrange(npt):
-    ap = init_func1('fc%02i'%ipt, M_list[ipt])
+    ap = init_func1('fc%02i'%ipt, A_list[ipt], M_list[ipt])
 
     sys_group = Assembly('fc%02i'%ipt,
                          input_maps={'twist': None},
