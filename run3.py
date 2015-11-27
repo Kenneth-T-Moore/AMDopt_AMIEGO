@@ -1,6 +1,8 @@
 from __future__ import division
 import numpy
 
+from mpi4py import MPI
+
 from MAUD.core import Framework, Assembly, IndVar, MultiPtVar
 from MAUD.solvers import *
 from sumad import *
@@ -8,7 +10,7 @@ from MAUD.driver_pyoptsparse import *
 from init_func import *
 from Allocation.allocation2 import Allocation, add_quantities_alloc, load_params
 from MissionAnalysis.RMTS import setup_drag_rmts
-from MissionAnalysis.mission import add_quantities_mission
+from MissionAnalysis.mission import Mission, add_quantities_mission
 
 
 
@@ -37,7 +39,7 @@ interp, yt = setup_drag_rmts(A_list0, M_list0)
 
 nTwist = 6
 
-DVGeo = init_func3(nTwist)
+DVGeo, DVCon = init_func3(nTwist)
 
 aero_groups = []
 for ipt in xrange(npt):
@@ -85,15 +87,64 @@ num_ac = num_ext_ac + num_new_ac
 
 list_ac_params, list_mission_params = load_params(ac_path, rt_data, ac_data, misc_data)
 
+
+
+
+'''
+comm = MPI.COMM_WORLD
+
+for irt in xrange(num_rt):
+    mission_params = list_mission_params[irt]
+    for iac in xrange(num_new_ac):
+        ac_params = list_ac_params[iac]
+        ac_name = ac_data['new_ac'][iac]
+        imsn = irt + iac * num_rt
+
+        if comm.rank == imsn:
+            msn = Mission('mission', index=0, nproc=1,
+                          ac_params=ac_params,
+                          mission_params=mission_params)
+    
+            top = Assembly('top', subsystems=[
+                    IndVar('pax_flt', value=ac_data['capacity', ac_name]),
+                    msn,
+            ])
+
+            num_cp = mission_params['num_cp']
+            num_pt = mission_params['num_pt']
+
+            subcomm = comm.Split(imsn)
+
+            fw = Framework()
+            add_quantities_mission(fw, '', num_cp, num_pt, True)        
+            fw.init_systems(top, subcomm)
+            fw.init_vectors()
+            fw.compute()
+            driver = DriverPyOptSparse(options={'Print file': 'MSN_%i_%i_print.out'%(iac,irt)},
+                                       hist_file='hist_%i_%i.hst'%(iac,irt)) #options={'Verify level':3})
+            fw.init_driver(driver)
+            fw.top.set_print(False)
+            fw.run()
+            h_cp_local = msn['h_cp'].value
+
+h_cp_list = comm.allgather(h_cp_local)
+'''
+
+
+
 alloc = Allocation('sys_alloc', ac_path=ac_path, rt_data=rt_data,
                    ac_data=ac_data, misc_data=misc_data,
                    interp=interp, yt=yt, num_hi=npt)
 
 
 
+nShape = 72
 
 top = Assembly('sys_top', subsystems=[
     IndVar('twist', value=0*numpy.ones(nTwist)),
+    IndVar('shape', value=0*numpy.ones(nShape)),
+    SysDVCon('sys_dv_con', nTwist=nTwist, nShape=nShape,
+             DVGeo=DVGeo, DVCon=DVCon),
     sys_aero_groups,
     MultiPtVar('sys_multipt_lift', npt=npt,
                in_name='fc%02i.cl', out_name='CL_hifi'),
@@ -107,6 +158,12 @@ fw.init_systems(top)
 
 fw.add_quantity('input', 'twist', indices=range(nTwist),
                 lower=-10, upper=10, scale=1.0)
+fw.add_quantity('input', 'shape', indices=range(nShape),
+                lower=-0.5, upper=0.5, scale=10.0)
+fw.add_quantity('output', 'vol_con', indices=[0],
+                lower=1.0, upper=3.0)
+fw.add_quantity('output', 'thk_con', range(100),
+                lower=1.0, upper=3.0)
 
 for imsn in xrange(npt):
     prefix = 'sys_msn%i.' % (imsn)

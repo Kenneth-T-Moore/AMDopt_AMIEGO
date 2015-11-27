@@ -4,7 +4,7 @@
 DVCon = DVConstraints()
 DVCon.setDVGeo(DVGeo)
 
-if args_shape:
+if True:
     # Only SUmb has the getTriangulatedSurface Function
     DVCon.setSurface(CFDSolver.getTriangulatedMeshSurface())
 

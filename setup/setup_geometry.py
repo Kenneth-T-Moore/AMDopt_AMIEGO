@@ -21,7 +21,7 @@ def twist(val, geo):
 DVGeo.addGeoDVGlobal('twist', 0*numpy.ones(nTwist), twist,
                      lower=-10, upper=10, scale=1.0)
 
-if args_shape:
+if True:
     DVGeo.addGeoDVLocal('shape', lower=-0.5, upper=0.5, axis='y', scale=10.0)
     
 

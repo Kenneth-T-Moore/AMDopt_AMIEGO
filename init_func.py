@@ -75,7 +75,32 @@ def init_func3(nTwist):
     DVGeo.addGeoDVGlobal('twist', 0*numpy.ones(nTwist), twist,
                          lower=-10, upper=10, scale=1.0)
 
-    if args_shape:
-        DVGeo.addGeoDVLocal('shape', lower=-0.5, upper=0.5, axis='y', scale=10.0)
+    DVGeo.addGeoDVLocal('shape', lower=-0.5, upper=0.5, axis='y', scale=10.0)
 
-    return DVGeo
+
+
+
+    CFDSolver = init_func2(MPI.COMM_WORLD, DVGeo)
+
+
+
+
+    DVCon = DVConstraints()
+    DVCon.setDVGeo(DVGeo)
+
+    # Only SUmb has the getTriangulatedSurface Function
+    DVCon.setSurface(CFDSolver.getTriangulatedMeshSurface())
+
+    # Le/Te constraints
+#    DVCon.addLeTeConstraints(0, 'iLow')
+#    DVCon.addLeTeConstraints(0, 'iHigh')
+ 
+    # Volume constraints
+    leList = [[0.1, 0, 0.001], [0.1+7.5, 0, 14]]
+    teList = [[4.2, 0, 0.001], [8.5, 0, 14]]
+    DVCon.addVolumeConstraint(leList, teList, 20, 20, lower=1.0)
+
+    # Thickness constraints
+    DVCon.addThicknessConstraints2D(leList, teList, 10, 10, lower=1.0)
+
+    return DVGeo, DVCon

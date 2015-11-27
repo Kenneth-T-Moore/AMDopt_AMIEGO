@@ -8,8 +8,10 @@ class SysAeroSolver(ExplicitComponent):
 
     def initialize(self):
         nTwist = self.kwargs['nTwist']
+        nShape = self.kwargs['nShape']
 
         self.add_input('twist', range(nTwist))
+        self.add_input('shape', range(nShape))
         self.add_input('alpha', [0])
         self.add_output('cl', 1.0)
         self.add_output('cd', 1.0)
@@ -24,6 +26,7 @@ class SysAeroSolver(ExplicitComponent):
 
         dv_dict = {}
         dv_dict['twist'] = self.pvec['twist'][:, 0]
+        dv_dict['shape'] = self.pvec['shape'][:, 0]
         dv_dict[ap.DVNames['alpha']] = self.pvec['alpha'][0, 0]
 
         DVGeo.setDesignVars(dv_dict)
@@ -47,8 +50,51 @@ class SysAeroSolver(ExplicitComponent):
         for vout in ['cl', 'cd']:
             vin = 'twist'
             self.jacobians[vout, vin] = sens_dict[ap[vout]][vin]
+            vin = 'shape'
+            self.jacobians[vout, vin] = sens_dict[ap[vout]][vin]
             vin = 'alpha'
             self.jacobians[vout, vin] = sens_dict[ap[vout]][ap.DVNames[vin]]
+
+
+
+class SysDVCon(ExplicitComponent):
+
+    def initialize(self):
+        nTwist = self.kwargs['nTwist']
+        nShape = self.kwargs['nShape']
+
+        self.add_input('twist', range(nTwist))
+        self.add_input('shape', range(nShape))
+        self.add_output('vol_con')
+        self.add_output('thk_con', numpy.zeros(100))
+
+    def oper_execute(self):
+        DVGeo = self.kwargs['DVGeo']
+        DVCon = self.kwargs['DVCon']
+
+        dv_dict = {}
+        dv_dict['twist'] = self.pvec['twist'][:, 0]
+        dv_dict['shape'] = self.pvec['shape'][:, 0]
+
+        DVGeo.setDesignVars(dv_dict)
+
+        func_dict = {}
+        DVCon.evalFunctions(func_dict)
+
+        self.uvec['vol_con'][0, 0] = func_dict['volume_constraint_0']
+        self.uvec['thk_con'][:, 0] = func_dict['thickness_constraints_0']
+
+    def oper_jacobians(self):
+        DVCon = self.kwargs['DVCon']
+
+        sens_dict = {}
+        DVCon.evalFunctionsSens(sens_dict)
+
+        for vin in ['twist', 'shape']:
+            self.jacobians['vol_con', vin] = sens_dict['volume_constraint_0'][vin]
+            self.jacobians['thk_con', vin] = sens_dict['thickness_constraints_0'][vin]
+        
+
 
 
 class SysObj(ExplicitComponent):
