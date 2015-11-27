@@ -82,6 +82,14 @@ fw.add_quantity('output', 'vol_con', indices=[0],
                 lower=1.0, upper=3.0, group='g:pax_con')
 fw.add_quantity('output', 'thk_con', indices=range(100),
                 lower=1.0, upper=3.0, group='g:thk_con')
+lincon = DVCon.linearCon['lete_constraint_0']
+fw.add_quantity('output', 'lete0_con', indices=range(6),
+                lower=lincon.lower, upper=lincon.upper,
+                group='g:lete0')
+lincon = DVCon.linearCon['lete_constraint_1']
+fw.add_quantity('output', 'lete1_con', indices=range(6),
+                lower=lincon.lower, upper=lincon.upper,
+                group='g:lete1')
 
 for ipt in xrange(npt):
     fw.add_quantity('input', 'fc%02i.alpha'%ipt,

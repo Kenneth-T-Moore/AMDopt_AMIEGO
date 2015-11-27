@@ -92,8 +92,8 @@ def init_func3(nTwist):
     DVCon.setSurface(CFDSolver.getTriangulatedMeshSurface())
 
     # Le/Te constraints
-#    DVCon.addLeTeConstraints(0, 'iLow')
-#    DVCon.addLeTeConstraints(0, 'iHigh')
+    DVCon.addLeTeConstraints(0, 'iLow')
+    DVCon.addLeTeConstraints(0, 'iHigh')
  
     # Volume constraints
     leList = [[0.1, 0, 0.001], [0.1+7.5, 0, 14]]
