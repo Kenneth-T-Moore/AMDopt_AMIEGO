@@ -164,9 +164,9 @@ fw.add_quantity('input', 'twist', indices=range(nTwist),
 fw.add_quantity('input', 'shape', indices=range(nShape),
                 lower=-0.5, upper=0.5, scale=10.0)
 fw.add_quantity('output', 'vol_con', indices=[0],
-                lower=1.0, upper=3.0)
-fw.add_quantity('output', 'thk_con', range(100),
-                lower=1.0, upper=3.0)
+                lower=1.0, upper=3.0, group='g:pax_con')
+fw.add_quantity('output', 'thk_con', indices=range(100),
+                lower=1.0, upper=3.0, group='g:thk_con')
 
 for imsn in xrange(npt):
     prefix = 'sys_msn%i.' % (imsn)
