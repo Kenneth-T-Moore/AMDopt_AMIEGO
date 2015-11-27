@@ -38,6 +38,7 @@ interp, yt = setup_drag_rmts(A_list0, M_list0)
 
 
 nTwist = 6
+nShape = 72
 
 DVGeo, DVCon = init_func3(nTwist)
 
@@ -46,12 +47,15 @@ for ipt in xrange(npt):
     ap = init_func1('fc%02i'%ipt, A_list[ipt], M_list[ipt])
 
     sys_group = Assembly('fc%02i'%ipt,
-                         input_maps={'twist': None},
+                         input_maps={
+            'twist': None,
+            'shape': None,
+            },
                          output_maps={},
                          subsystems=[
                              IndVar('alpha', value=A_list[ipt]),
                              SysAeroSolver('sys_aero', ap=ap,
-                                           nTwist=nTwist,
+                                           nTwist=nTwist, nShape=nShape,
                                            DVGeo=DVGeo,
                                            init_func=init_func2),
                          ])
@@ -138,7 +142,6 @@ alloc = Allocation('sys_alloc', ac_path=ac_path, rt_data=rt_data,
 
 
 
-nShape = 72
 
 top = Assembly('sys_top', subsystems=[
     IndVar('twist', value=0*numpy.ones(nTwist)),
