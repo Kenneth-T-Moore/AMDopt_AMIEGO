@@ -1,5 +1,8 @@
 *.py~
 *.pyc
+*.out
+.nfs*
 run_*
+trun_*
 res*
 packages_path.txt

@@ -12,7 +12,7 @@ from pyoptsparse import Optimization, OPT
 
 
 args_mode = 'euler'
-args_output = 'res9/'
+args_output = 'res_0/'
 args_shape = 0
 args_opt = 'snopt'
 args_optOptions = {}
@@ -50,6 +50,11 @@ def init_func2(comm, DVGeo):
     if args_mode == 'euler' or args_mode == 'rans':
         mesh = MBMesh(options=meshOptions, comm=comm)
         CFDSolver.setMesh(mesh)
+
+    span = 14
+    pos = numpy.linspace(0.02,0.96,6) * span
+    CFDSolver.addSlices('z', pos, sliceType='absolute')
+    CFDSolver.addLiftDistribution(50, 'z')
 
     return CFDSolver
 

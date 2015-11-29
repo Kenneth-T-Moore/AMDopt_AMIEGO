@@ -4,6 +4,7 @@ aeroOptions = {
     # Common Parameters
     'gridFile':gridFile,
     'outputDirectory':outputDirectory,
+    'isoSurface':{'shock':1.0, 'vx':-0.001},
     
     # Physics Parameters
     'equationType':args_mode,
