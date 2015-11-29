@@ -36,6 +36,10 @@ class SysAeroSolver(ExplicitComponent):
         CFDSolver(ap)
         CFDSolver.evalFunctions(ap, func_dict)
 
+        if 'fail' in func_dict:
+            if func_dict['fail']:
+                self.rvec.oper_set_const(1.0)
+
         for name in ['cl', 'cd']:
             self.uvec[name][0, 0] = func_dict[ap[name]]
 
