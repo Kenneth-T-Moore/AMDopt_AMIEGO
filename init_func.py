@@ -12,7 +12,7 @@ from pyoptsparse import Optimization, OPT
 
 
 args_mode = 'euler'
-args_output = 'res_0/'
+args_output = 'res/'
 args_shape = 0
 args_opt = 'snopt'
 args_optOptions = {}

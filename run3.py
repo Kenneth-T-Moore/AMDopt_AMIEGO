@@ -146,7 +146,7 @@ list_ac_params, list_mission_params = load_params(ac_path, rt_data, ac_data, mis
 
 
 
-
+'''
 comm = MPI.COMM_WORLD
 
 for irt in xrange(num_rt):
@@ -197,7 +197,7 @@ for irt in xrange(num_rt):
 #    h_cp_local = None
 
 h_cp_list = comm.allgather(h_cp_local)
-
+'''
 
 
 
@@ -233,12 +233,13 @@ fw.add_quantity('output', 'vol_con', indices=[0],
 fw.add_quantity('output', 'thk_con', indices=range(100),
                 lower=1.0, upper=3.0, group='g:thk_con')
 
-for imsn in xrange(npt):
+for imsn in xrange(num_rt * num_new_ac):
     prefix = 'sys_msn%i.' % (imsn)
     num_cp = alloc[prefix[:-1]].kwargs['mission_params']['num_cp']
     num_pt = alloc[prefix[:-1]].kwargs['mission_params']['num_pt']
 
-    alloc[prefix[:-1]]['h_cp'].value = h_cp_list[imsn]
+#    alloc[prefix[:-1]]['h_cp'].value = h_cp_list[imsn]
+    alloc[prefix[:-1]]['h_cp'].value = numpy.loadtxt('msn_profiles/msn_%i.dat'%imsn)
 
     add_quantities_mission(fw, prefix, num_cp, num_pt)
 
