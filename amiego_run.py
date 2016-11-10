@@ -1,19 +1,24 @@
+""" OpenMDAO model that builds wraps and executes a black_box wrapping of the AMD optimization.
+"""
+
 from __future__ import division
-import numpy
-
-from mpi4py import MPI
-
-from MAUD.core import Framework, Assembly, IndVar, MultiPtVar
-from MAUD.solvers import *
-from sumad import *
-from MAUD.driver_pyoptsparse import *
-from init_func import *
-from Allocation.allocation2 import Allocation, add_quantities_alloc, load_params
-from MissionAnalysis.RMTS import setup_drag_rmts
-from MissionAnalysis.mission import Mission, add_quantities_mission
-
 import sys
 
+import numpy
+from mpi4py import MPI
+
+from openmdao.api import Component, Problem, Group
+from openmdao.core.petsc_impl import PetscImpl
+
+from MAUD.core import Framework, Assembly, IndVar, MultiPtVar
+from MAUD.driver_pyoptsparse import *
+from MAUD.solvers import *
+
+from Allocation.allocation_amiego import Allocation, add_quantities_alloc, load_params
+from init_func import *
+from MissionAnalysis.RMTS15 import setup_drag_rmts
+from MissionAnalysis.mission import Mission, add_quantities_mission
+from sumad import *
 
 
 def redirectIO(f):
@@ -37,30 +42,54 @@ def redirectIO(f):
     sys.stdout = os.fdopen(original_stdout_fd, 'wb', 0) # 0 makes them unbuffered
     sys.stderr = os.fdopen(original_stderr_fd, 'wb', 0)
 
+
+class AMDOptimization(Component):
+    """ Simple Component wrapper that can execute the AMD model.
+
+        Args
+        ----
+        fw : MAUD framework object
+            The MAUD model, completely loaded but not initialized yet.
+    """
+
+    def __init__(self, fw):
+        """ Create AMDOptimization instance."""
+        super(AMDOptimization, self).__init__()
+
+        self.fw = fw
+
+        # Integer input that AMIEGO will set.
+        n_i = len(alloc['flt_day'].value.shape)
+        self.add_param('flt_day', np.zeros((n_i, ), dtype=np.int))
+
+        # TODO: Create vars for openmdao
+
+    def solve_nonlinear(self, params, unknowns, resids):
+        """ Pulls integer params from vector, then runs the fw model.
+        """
+        fw = self.fw
+
+        # TODO: We need to pull integer design variables from params and
+        # assign them into fw
+        # alloc['flt_day'].value = val
+
+	# Need to reinitialize driver with the new values each time.
+        driver = DriverPyOptSparse()#options={'Verify level':3})
+        fw.compute()
+        fw.init_driver(driver)
+
+        # Run
+        fw.run()
+
+        # TODO: We need to save off the Objective and Constraints, and continuous desvars
+
+
 filename = 'output%03i.out'%MPI.COMM_WORLD.rank
 if MPI.COMM_WORLD.rank == 0:
     filename = 'output.out'
 redirectIO(open(filename, 'w'))
 
-
-
-
 r2d = 180.0 / numpy.pi
-
-
-
-A_list0 = []
-M_list0 = []
-
-A_list0.extend([-1.] * 6)
-M_list0.extend([0.60, 0.70, 0.73, 0.76, 0.78, 0.80])
-
-A_list0.extend([1.] * 6)
-M_list0.extend([0.60, 0.70, 0.73, 0.76, 0.78, 0.80])
-
-A_list0.extend([3] * 4)
-M_list0.extend([0.60, 0.70, 0.74, 0.77])
-
 
 A_list0 = []
 M_list0 = []
@@ -83,11 +112,6 @@ M_list0.extend([0.68, 0.74, 0.78])
 npt = len(A_list0)
 
 interp, yt = setup_drag_rmts(A_list0, M_list0)
-
-
-
-
-
 
 nTwist = 6
 nShape = 72
@@ -119,10 +143,7 @@ sys_aero_groups.nonlinear_solver = NLNsolverJC(ilimit=1)
 sys_aero_groups.linear_solver = LINsolverJC(ilimit=1)
 
 
-#problem = 'problem_32rt_3ac_1new.py'
-#problem = 'problem_4rt_3ac_1new.py'
 problem = 'problem_128rt_4ac_1new.py'
-#problem = 'problem_3rt_2ac.py'
 
 path_file = open('./packages_path.txt', 'r')
 packages_path = path_file.readlines()[0][:-1]
@@ -144,68 +165,9 @@ num_ac = num_ext_ac + num_new_ac
 list_ac_params, list_mission_params = load_params(ac_path, rt_data, ac_data, misc_data)
 
 
-
-
-'''
-comm = MPI.COMM_WORLD
-
-for irt in xrange(num_rt):
-    mission_params = list_mission_params[irt]
-    mission_params['interp'] = interp
-    mission_params['num_hi'] = npt
-    mission_params['yt'] = None
-    for iac in xrange(num_new_ac):
-        ac_params = list_ac_params[iac]
-        ac_name = ac_data['new_ac'][iac]
-        imsn = irt + iac * num_rt
-
-        if comm.rank == imsn:
-            msn = Mission('mission', index=0, nproc=1,
-                          ac_params=ac_params,
-                          mission_params=mission_params,
-                          interp=interp, yt=None)
-    
-            top = Assembly('top', subsystems=[
-                    IndVar('pax_flt', value=ac_data['capacity', ac_name]),
-                    IndVar('CL_hifi', value=numpy.loadtxt('surr_CL_hifi.dat')),
-                    IndVar('CD_hifi', value=numpy.loadtxt('surr_CD_hifi.dat')),
-                    msn,
-            ])
-
-            num_cp = mission_params['num_cp']
-            num_pt = mission_params['num_pt']
-
-            subcomm = comm.Split(imsn)
-
-            fw = Framework()
-            add_quantities_mission(fw, '', num_cp, num_pt, True)        
-            fw.init_systems(top, subcomm)
-            fw.init_vectors()
-            fw.compute()
-            driver = DriverPyOptSparse(options={
-                    'Print file': 'MSN_%i_%i_print.out'%(iac,irt),
-                    'Summary file': 'MSN_%i_%i_summary.out'%(iac,irt),
-                    },
-                                       hist_file='hist_%i_%i.hst'%(iac,irt)) #options={'Verify level':3})
-            fw.init_driver(driver)
-            fw.top.set_print(False)
-            fw.run()
-            h_cp_local = msn['h_cp'].value
-
-#if comm.rank >= num_rt * num_new_ac:
-#    subcomm = comm.Split(num_rt * num_new_ac)
-#    h_cp_local = None
-
-h_cp_list = comm.allgather(h_cp_local)
-'''
-
-
-
 alloc = Allocation('sys_alloc', ac_path=ac_path, rt_data=rt_data,
                    ac_data=ac_data, misc_data=misc_data,
                    interp=interp, yt=yt, num_hi=npt)
-
-
 
 
 top = Assembly('sys_top', subsystems=[
@@ -225,9 +187,9 @@ fw = Framework()
 fw.init_systems(top)
 
 fw.add_quantity('input', 'twist', indices=range(nTwist),
-                lower=-10, upper=10, scale=1.0)
+                lower=-10, upper=10, scale=1000.0)
 fw.add_quantity('input', 'shape', indices=range(nShape),
-                lower=-0.5, upper=0.5, scale=10.0)
+                lower=-0.5, upper=0.5, scale=1000.0)
 fw.add_quantity('output', 'vol_con', indices=[0],
                 lower=1.0, upper=3.0, group='g:pax_con')
 fw.add_quantity('output', 'thk_con', indices=range(100),
@@ -241,6 +203,7 @@ for imsn in xrange(num_rt * num_new_ac):
 #    alloc[prefix[:-1]]['h_cp'].value = h_cp_list[imsn]
     alloc[prefix[:-1]]['h_cp'].value = numpy.loadtxt('msn_profiles/msn_%i.dat'%imsn)
 
+    # Mission design variables get added here.
     add_quantities_mission(fw, prefix, num_cp, num_pt)
 
 flt_day_init = ac_data['flt_day'].flatten(order='C')
@@ -250,22 +213,24 @@ for ind in xrange(len(pax_flt_init)):
     if flt_day_init[ind] != 0:
         pax_flt_init[ind] /= flt_day_init[ind]
 
-alloc['flt_day'].value = flt_day_init.astype(float)
+#alloc['flt_day'].value = flt_day_init.astype(float)
 alloc['pax_flt'].value = pax_flt_init.astype(float)
 
 add_quantities_alloc(fw)
 
-
-
-
-
-driver = DriverPyOptSparse()#options={'Verify level':3})
-
+# Final setup stuff
 fw.init_vectors()
-#fw.top.print_var_sizes()
-#exit()
-fw.compute()
-fw.init_driver(driver)
 fw.top.set_print(False)
-#fw.top.set_print(True)
-fw.run()
+
+# Build OpenMDAO Model 
+
+top = Problem(impl=PetscImpl())
+top.root = root = Group()
+root.add('amd', AMDOptimization(fw))
+
+top.setup()
+
+top.run()
+
+print("Complete")
+
