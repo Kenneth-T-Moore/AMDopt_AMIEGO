@@ -311,10 +311,10 @@ print("Begin")
 for irun in range(raw.shape[0]):
 
     # Skip whatever we already have done:
-    if irun < 33:
-        continue
-    if irun in [0, 4, 6, 20, 26, 27, 28, 29, 30]:
-        continue
+    #if irun < 33:
+    #    continue
+    #if irun in [0, 4, 6, 20, 26, 27, 28, 29, 30]:
+    #    continue
 
     flt_day_init[1, :8] = raw[irun,   : 8]
     flt_day_init[3, :8] = raw[irun,  8:16]
