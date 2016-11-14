@@ -89,7 +89,7 @@ class AMDOptimization(Component):
 
 	# The gamma constraint is sized differently for each mission. Far easier to
 	# just read the sizes from the initial saved case.
-	for j in range(15):
+	for j in range(8):
 	    root = 'sys_msn%d' % j
 
 	    for var in ['gamma', 'Tmax', 'Tmin']:
@@ -130,7 +130,7 @@ class AMDOptimization(Component):
 	unknowns['thk_con'] = dvs_dict['thk_con']
 	unknowns['vol_con'] = dvs_dict['vol_con']
 
-	for j in range(15):
+	for j in range(8):
 	    root = 'sys_msn%d' % j
 	    for var in ['gamma', 'Tmax', 'Tmin']:
 		name_i = root + '.' + var
@@ -277,8 +277,8 @@ fw.top.set_print(False)
 # Warmer Start from Initial Conditions
 #-------------------------------------
 
-init_dv = pickle.load( open( "../good_preopts/dvs_001.pkl", "rb" ) )
-init_func = pickle.load( open( "../good_preopts/funcs_001.pkl", "rb" ) )
+init_dv = pickle.load( open( "../good_preopts/dvs_000.pkl", "rb" ) )
+init_func = pickle.load( open( "../good_preopts/funcs_000.pkl", "rb" ) )
 
 #----------------------
 # Build OpenMDAO Model
