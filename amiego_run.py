@@ -10,7 +10,7 @@ import sys
 import numpy as np
 from mpi4py import MPI
 
-from openmdao.api import Component, Problem, Group, Driver
+from openmdao.api import Component, Problem, Group, Driver, IndepVarComp
 from openmdao.core.petsc_impl import PetscImpl
 from openmdao.drivers.amiego_driver import AMIEGO_driver
 
@@ -297,6 +297,7 @@ init_func = pickle.load( open( "../good_preopts/funcs_000.pkl", "rb" ) )
 
 prob = Problem(impl=PetscImpl)
 prob.root = root = Group()
+root.add('p1', IndepVarComp('flt_day', np.zeros((24, ))), promotes=['*'])
 root.add('amd', AMDOptimization(fw, alloc, init_func), promotes=['*'])
 
 prob.driver = AMIEGO_driver()
