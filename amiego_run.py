@@ -99,7 +99,7 @@ class AMDOptimization(Component):
 	    for var in ['gamma', 'Tmax', 'Tmin']:
 		name_i = root + '.' + var
 		name_o = root + ':' + var
-		size = len(init_cons[name_i])
+		size = len(init_func[name_i])
 		self.add_output(name_o, np.zeros((size,)))
 
     def solve_nonlinear(self, params, unknowns, resids):
