@@ -10,8 +10,9 @@ import sys
 import numpy as np
 from mpi4py import MPI
 
-from openmdao.api import Component, Problem, Group
+from openmdao.api import Component, Problem, Group, Driver
 from openmdao.core.petsc_impl import PetscImpl
+from openmdao.drivers.amiego_driver import AMIEGO_driver
 
 from MAUD.core import Framework, Assembly, IndVar, MultiPtVar
 from MAUD.driver_pyoptsparse import *
@@ -70,8 +71,7 @@ class AMDOptimization(Component):
 
         # Integer input that AMIEGO will set.
 
-        n_i = len(alloc['flt_day'].value.shape)
-        self.add_param('flt_day', np.zeros((n_i, ), dtype=np.int))
+        self.add_param('flt_day', np.zeros((24, ), dtype=np.int))
 
         # Continuous desvars are just outputs.
 	# Note, it is not necessary for AMIEGO to know about all of these. Just for
@@ -109,7 +109,12 @@ class AMDOptimization(Component):
 	alloc = self.alloc
 
         # Pull integer design variables from params and assign them into fw
-        alloc['flt_day'].value = params['flt_day']
+	flt_day_init = numpy.zeros((num_ac, num_rt))
+	raw = params['flt_day']
+	flt_day_init[1, :8] = raw[:8]
+	flt_day_init[3, :8] = raw[8:16]
+	flt_day_init[4, :8] = raw[16:24]
+        alloc['flt_day'].value = flt_day_init
 
 	# Reinitialize driver with the new values each time.
         driver = DriverPyOptSparse()#options={'Verify level':3})
@@ -292,7 +297,25 @@ init_func = pickle.load( open( "../good_preopts/funcs_000.pkl", "rb" ) )
 
 top = Problem(impl=PetscImpl)
 top.root = root = Group()
-root.add('amd', AMDOptimization(fw, alloc, init_func))
+root.add('amd', AMDOptimization(fw, alloc, init_func), promotes=['*'])
+
+prob.driver = AMIEGO_driver()
+prob.driver.cont_opt = Driver()
+
+prob.driver.add_desvar('flt_day', lower=0, upper=6)
+prob.driver.add_objective('profit_1e6_d')
+#prob.driver.add_constraint('stress', upper=1.0)
+
+#npt = 5
+#samples = np.array([[1.0, 0.25, 0.75],
+                            #[0.0, 0.75, 0.0],
+                            #[0.75, 0.0, 0.25],
+                            #[0.75, 1.0, 0.49],
+                            #[0.25, 0.49, 1.0]])
+
+#prob.driver.sampling = {'mat1' : samples[:, 0].reshape((npt, 1)),
+                                #'mat2' : samples[:, 1].reshape((npt, 1)),
+                                #'mat3' : samples[:, 2].reshape((npt, 1))}
 
 top.setup()
 
