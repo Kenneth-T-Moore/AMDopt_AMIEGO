@@ -62,7 +62,7 @@ class AMDOptimization(Component):
         super(AMDOptimization, self).__init__()
 
         self.fw = fw
-	alloc = fw['alloc']
+	alloc = fw.top['alloc']
 
         # Integer input that AMIEGO will set.
 
@@ -102,7 +102,7 @@ class AMDOptimization(Component):
         """ Pulls integer params from vector, then runs the fw model.
         """
         fw = self.fw
-	alloc = fw['alloc']
+	alloc = fw.top['alloc']
 
         # Pull integer design variables from params and assign them into fw
         alloc['flt_day'].value = params['flt_day']
