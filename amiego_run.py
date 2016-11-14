@@ -256,7 +256,9 @@ for imsn in xrange(num_rt * num_new_ac):
     alloc[prefix[:-1]]['h_cp'].value = numpy.loadtxt('msn_profiles/msn_%i.dat'%imsn)
 
     # Mission design variables get added here.
-    add_quantities_mission(fw, prefix, num_cp, num_pt)
+    # Optimizer only considers the first 8 routes.
+    if imsn < 8:
+	add_quantities_mission(fw, prefix, num_cp, num_pt)
 
 flt_day_init = ac_data['flt_day'].flatten(order='C')
 pax_flt_init = ac_data['pax_flt'].flatten(order='C')
@@ -284,7 +286,7 @@ init_func = pickle.load( open( "../good_preopts/funcs_000.pkl", "rb" ) )
 # Build OpenMDAO Model
 #----------------------
 
-top = Problem(impl=PetscImpl())
+top = Problem(impl=PetscImpl)
 top.root = root = Group()
 root.add('amd', AMDOptimization(fw, init_func))
 
