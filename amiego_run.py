@@ -295,8 +295,8 @@ init_func = pickle.load( open( "../good_preopts/funcs_000.pkl", "rb" ) )
 # Build OpenMDAO Model
 #----------------------
 
-top = Problem(impl=PetscImpl)
-top.root = root = Group()
+prob = Problem(impl=PetscImpl)
+prob.root = root = Group()
 root.add('amd', AMDOptimization(fw, alloc, init_func), promotes=['*'])
 
 prob.driver = AMIEGO_driver()
@@ -317,9 +317,9 @@ prob.driver.add_objective('profit_1e6_d')
                                 #'mat2' : samples[:, 1].reshape((npt, 1)),
                                 #'mat3' : samples[:, 2].reshape((npt, 1))}
 
-top.setup()
+prob.setup()
 
-top.run()
+prob.run()
 
 print("Complete")
 
