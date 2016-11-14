@@ -57,12 +57,12 @@ class AMDOptimization(Component):
     init_func : dict
         Initial values of obj/constraints - needed just for sizing.
     """
-    def __init__(self, fw, init_func):
+    def __init__(self, fw, alloc, init_func):
         """ Create AMDOptimization instance."""
         super(AMDOptimization, self).__init__()
 
         self.fw = fw
-	alloc = fw.top['alloc']
+	self.alloc = alloc
 
         # Integer input that AMIEGO will set.
 
@@ -102,7 +102,7 @@ class AMDOptimization(Component):
         """ Pulls integer params from vector, then runs the fw model.
         """
         fw = self.fw
-	alloc = fw.top['alloc']
+	alloc = self.alloc
 
         # Pull integer design variables from params and assign them into fw
         alloc['flt_day'].value = params['flt_day']
@@ -288,7 +288,7 @@ init_func = pickle.load( open( "../good_preopts/funcs_000.pkl", "rb" ) )
 
 top = Problem(impl=PetscImpl)
 top.root = root = Group()
-root.add('amd', AMDOptimization(fw, init_func))
+root.add('amd', AMDOptimization(fw, alloc, init_func))
 
 top.setup()
 
