@@ -1,7 +1,10 @@
-""" OpenMDAO model that builds wraps and executes a black_box wrapping of the AMD optimization.
+""" OpenMDAO model that builds wraps and executes a black_box wrapping of the
+AMD optimization.
 """
 
 from __future__ import division
+import pickle
+from six.moves import range
 import sys
 
 import numpy
@@ -23,8 +26,8 @@ from sumad import *
 
 def redirectIO(f):
     """
-    Redirect stdout/stderr to the given file handle.
-    Based on: http://eli.thegreenplace.net/2015/redirecting-all-kinds-of-stdout-in-python/.
+    Redirect stdout/stderr to the given file handle. Based on:
+    http://eli.thegreenplace.net/2015/redirecting-all-kinds-of-stdout-in-python/.
     Written by Bret Naylor
     """
     original_stdout_fd = sys.stdout.fileno()
@@ -46,34 +49,65 @@ def redirectIO(f):
 class AMDOptimization(Component):
     """ Simple Component wrapper that can execute the AMD model.
 
-        Args
-        ----
-        fw : MAUD framework object
-            The MAUD model, completely loaded but not initialized yet.
-    """
+    Args
+    ----
+    fw : MAUD framework object
+        The MAUD model, completely loaded but not initialized yet.
 
-    def __init__(self, fw):
+    init_func : dict
+        Initial values of obj/constraints - needed just for sizing.
+    """
+    def __init__(self, fw, init_func):
         """ Create AMDOptimization instance."""
         super(AMDOptimization, self).__init__()
 
         self.fw = fw
+	alloc = fw['alloc']
 
         # Integer input that AMIEGO will set.
+
         n_i = len(alloc['flt_day'].value.shape)
         self.add_param('flt_day', np.zeros((n_i, ), dtype=np.int))
 
-        # TODO: Create vars for openmdao
+        # Continuous desvars are just outputs.
+	# Note, it is not necessary for AMIEGO to know about all of these. Just for
+	# simplicity's sake, AMIEGO will track progress on passengers per flight,
+	# but twist, shape, and the cp an M0 for each mission will be ignored here,
+	# but saved off in the history file.
+
+	n_i = len(alloc['pax_flt'].value.shape)
+	self.add_output('pax_flt', np.zeros((n_i, )))
+
+	# Objective Output
+	self.add_output('profit_1e6_d', 0.0)
+
+	# However, we do need every single constraint.
+	self.add_output('ac_con', np.zeros((5, )))
+	self.add_output('pax_con', np.zeros((128, )))
+	self.add_output('thk_con', np.zeros((100, )))
+	self.add_output('vol_con', 0.0)
+
+	# The gamma constraint is sized differently for each mission. Far easier to
+	# just read the sizes from the initial saved case.
+	for j in range(15):
+	    root = 'sys_msn%d' % j
+
+	    for var in ['gamma', 'Tmax', 'Tmin']:
+		name_i = root + '.' + var
+		name_o = root + ':' + var
+		size = len(init_cons[name_i])
+		self.add_output(name_o, np.zeros((size,)))
 
     def solve_nonlinear(self, params, unknowns, resids):
         """ Pulls integer params from vector, then runs the fw model.
         """
         fw = self.fw
+	alloc = fw['alloc']
 
-        # TODO: We need to pull integer design variables from params and
-        # assign them into fw
-        # alloc['flt_day'].value = val
+        # Pull integer design variables from params and assign them into fw
+        alloc['flt_day'].value = params['flt_day']
 
-	# Need to reinitialize driver with the new values each time.
+	# Reinitialize driver with the new values each time.
         driver = DriverPyOptSparse()#options={'Verify level':3})
         fw.compute()
         fw.init_driver(driver)
@@ -81,7 +115,27 @@ class AMDOptimization(Component):
         # Run
         fw.run()
 
-        # TODO: We need to save off the Objective and Constraints, and continuous desvars
+        # Load in optimum from SNOPT history
+	db = SqliteDict('mrun/hist.hst')
+	dvs_dict = db[db['last']]['xuser']
+	funcs_dict = db[db['last']]['funcs']
+	db.close()
+
+	# Objective
+	unknowns['profit_1e6_d'] = dvs_dict['profit_1e6_d']
+
+	# Constraints
+	unknowns['ac_con'] = dvs_dict['ac_con']
+	unknowns['pax_con'] = dvs_dict['pax_con']
+	unknowns['thk_con'] = dvs_dict['thk_con']
+	unknowns['vol_con'] = dvs_dict['vol_con']
+
+	for j in range(15):
+	    root = 'sys_msn%d' % j
+	    for var in ['gamma', 'Tmax', 'Tmin']:
+		name_i = root + '.' + var
+		name_o = root + ':' + var
+		unknowns[name_o] = dvs_dict[name_i]
 
 
 filename = 'output%03i.out'%MPI.COMM_WORLD.rank
@@ -169,7 +223,6 @@ alloc = Allocation('sys_alloc', ac_path=ac_path, rt_data=rt_data,
                    ac_data=ac_data, misc_data=misc_data,
                    interp=interp, yt=yt, num_hi=npt)
 
-
 top = Assembly('sys_top', subsystems=[
     IndVar('twist', value=0*numpy.ones(nTwist)),
     IndVar('shape', value=0*numpy.ones(nShape)),
@@ -200,7 +253,6 @@ for imsn in xrange(num_rt * num_new_ac):
     num_cp = alloc[prefix[:-1]].kwargs['mission_params']['num_cp']
     num_pt = alloc[prefix[:-1]].kwargs['mission_params']['num_pt']
 
-#    alloc[prefix[:-1]]['h_cp'].value = h_cp_list[imsn]
     alloc[prefix[:-1]]['h_cp'].value = numpy.loadtxt('msn_profiles/msn_%i.dat'%imsn)
 
     # Mission design variables get added here.
@@ -213,20 +265,28 @@ for ind in xrange(len(pax_flt_init)):
     if flt_day_init[ind] != 0:
         pax_flt_init[ind] /= flt_day_init[ind]
 
-#alloc['flt_day'].value = flt_day_init.astype(float)
 alloc['pax_flt'].value = pax_flt_init.astype(float)
 
 add_quantities_alloc(fw)
 
-# Final setup stuff
+# Final MAUD setup stuff
 fw.init_vectors()
 fw.top.set_print(False)
 
-# Build OpenMDAO Model 
+#-------------------------------------
+# Warmer Start from Initial Conditions
+#-------------------------------------
+
+init_dv = pickle.load( open( "../good_preopts/dvs_001.pkl", "rb" ) )
+init_func = pickle.load( open( "../good_preopts/funcs_001.pkl", "rb" ) )
+
+#----------------------
+# Build OpenMDAO Model
+#----------------------
 
 top = Problem(impl=PetscImpl())
 top.root = root = Group()
-root.add('amd', AMDOptimization(fw))
+root.add('amd', AMDOptimization(fw, init_func))
 
 top.setup()
 
