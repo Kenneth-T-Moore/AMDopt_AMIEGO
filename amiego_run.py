@@ -7,7 +7,7 @@ import pickle
 from six.moves import range
 import sys
 
-import numpy
+import numpy as np
 from mpi4py import MPI
 
 from openmdao.api import Component, Problem, Group
@@ -53,6 +53,10 @@ class AMDOptimization(Component):
     ----
     fw : MAUD framework object
         The MAUD model, completely loaded but not initialized yet.
+
+    alloc: Assembly
+        Pointer to the allocation assembly. Passed in because I am not sure MAUD
+	has a way to get it.
 
     init_func : dict
         Initial values of obj/constraints - needed just for sizing.
@@ -143,7 +147,7 @@ if MPI.COMM_WORLD.rank == 0:
     filename = 'output.out'
 redirectIO(open(filename, 'w'))
 
-r2d = 180.0 / numpy.pi
+r2d = 180.0 / np.pi
 
 A_list0 = []
 M_list0 = []
@@ -205,7 +209,7 @@ ac_path = packages_path + '/MissionAnalysis/inputs/'
 problem_path = packages_path + '/Allocation/inputs/'
 problemfile = problem_path + problem
 
-data = {'numpy': numpy}
+data = {'numpy': np}
 execfile(problemfile, data)
 rt_data = data['rt_data']
 ac_data = data['ac_data']
@@ -224,8 +228,8 @@ alloc = Allocation('sys_alloc', ac_path=ac_path, rt_data=rt_data,
                    interp=interp, yt=yt, num_hi=npt)
 
 top = Assembly('sys_top', subsystems=[
-    IndVar('twist', value=0*numpy.ones(nTwist)),
-    IndVar('shape', value=0*numpy.ones(nShape)),
+    IndVar('twist', value=0*np.ones(nTwist)),
+    IndVar('shape', value=0*np.ones(nShape)),
     SysDVCon('sys_dv_con', nTwist=nTwist, nShape=nShape,
              DVGeo=DVGeo, DVCon=DVCon),
     sys_aero_groups,
@@ -253,7 +257,7 @@ for imsn in xrange(num_rt * num_new_ac):
     num_cp = alloc[prefix[:-1]].kwargs['mission_params']['num_cp']
     num_pt = alloc[prefix[:-1]].kwargs['mission_params']['num_pt']
 
-    alloc[prefix[:-1]]['h_cp'].value = numpy.loadtxt('msn_profiles/msn_%i.dat'%imsn)
+    alloc[prefix[:-1]]['h_cp'].value = np.loadtxt('msn_profiles/msn_%i.dat'%imsn)
 
     # Mission design variables get added here.
     # Optimizer only considers the first 8 routes.
