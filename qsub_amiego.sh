@@ -1,10 +1,10 @@
 #!/bin/bash
 #
 # Use the ompi parallel environment, with X processors:
-#$ -pe ompi 128
+#$ -pe ompi 140
 #
 # The name of the job:
-#$ -N AMD
+#$ -N test_AMIEGO
 #
 # Start from the current working directory:
 #$ -cwd

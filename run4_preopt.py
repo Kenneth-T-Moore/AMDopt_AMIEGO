@@ -254,7 +254,8 @@ for imsn in xrange(num_rt * num_new_ac):
 #    alloc[prefix[:-1]]['h_cp'].value = h_cp_list[imsn]
     alloc[prefix[:-1]]['h_cp'].value = numpy.loadtxt('msn_profiles/msn_%i.dat'%imsn)
 
-    add_quantities_mission(fw, prefix, num_cp, num_pt)
+    if imsn < 8:
+        add_quantities_mission(fw, prefix, num_cp, num_pt)
 
 flt_day_init = ac_data['flt_day'].flatten(order='C')
 pax_flt_init = ac_data['pax_flt'].flatten(order='C')
