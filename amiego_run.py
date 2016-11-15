@@ -161,7 +161,7 @@ class AMDDriver(Driver):
         """ Create AMDDriver instance."""
         super(AMDDriver, self).__init__()
 	self.fw = fw
-	self.success = fw.driver.success
+
     def run(self, problem):
 	""" Runs the driver. This function should be overridden when inheriting.
 
