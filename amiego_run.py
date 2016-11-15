@@ -326,7 +326,7 @@ init_func = pickle.load( open( "../good_preopts/funcs_000.pkl", "rb" ) )
 
 prob = Problem(impl=PetscImpl)
 prob.root = root = Group()
-root.add('p1', IndepVarComp('flt_day', np.zeros((24, ))), promotes=['*'])
+root.add('p1', IndepVarComp('flt_day', np.zeros((24, )), dtype=np.int), promotes=['*'])
 root.add('amd', AMDOptimization(fw, alloc, init_func), promotes=['*'])
 
 prob.driver = AMIEGO_driver()
