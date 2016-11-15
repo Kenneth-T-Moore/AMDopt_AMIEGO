@@ -147,6 +147,11 @@ class AMDOptimization(Component):
 		unknowns[name_o] = dvs_dict[name_i]
 
 
+class AMDDriver(Driver):
+    """ A run-once driver that can report its error state just like
+    pyoptsparse."""
+
+
 filename = 'output%03i.out'%MPI.COMM_WORLD.rank
 if MPI.COMM_WORLD.rank == 0:
     filename = 'output.out'
@@ -302,6 +307,9 @@ root.add('amd', AMDOptimization(fw, alloc, init_func), promotes=['*'])
 
 prob.driver = AMIEGO_driver()
 prob.driver.cont_opt = Driver()
+
+# To save time
+prob.driver.minlp.options['atol'] = 0.1
 
 prob.driver.add_desvar('flt_day', lower=0, upper=6)
 prob.driver.add_objective('profit_1e6_d')
