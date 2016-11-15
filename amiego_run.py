@@ -25,26 +25,26 @@ from MissionAnalysis.mission import Mission, add_quantities_mission
 from sumad import *
 
 
-def redirectIO(f):
-    """
-    Redirect stdout/stderr to the given file handle. Based on:
-    http://eli.thegreenplace.net/2015/redirecting-all-kinds-of-stdout-in-python/.
-    Written by Bret Naylor
-    """
-    original_stdout_fd = sys.stdout.fileno()
-    original_stderr_fd = sys.stderr.fileno()
+#def redirectIO(f):
+    #"""
+    #Redirect stdout/stderr to the given file handle. Based on:
+    #http://eli.thegreenplace.net/2015/redirecting-all-kinds-of-stdout-in-python/.
+    #Written by Bret Naylor
+    #"""
+    #original_stdout_fd = sys.stdout.fileno()
+    #original_stderr_fd = sys.stderr.fileno()
 
-    # Flush and close sys.stdout/err - also closes the file descriptors (fd)
-    sys.stdout.close()
-    sys.stderr.close()
+    ## Flush and close sys.stdout/err - also closes the file descriptors (fd)
+    #sys.stdout.close()
+    #sys.stderr.close()
 
-    # Make original_stdout_fd point to the same file as to_fd
-    os.dup2(f.fileno(), original_stdout_fd)
-    os.dup2(f.fileno(), original_stderr_fd)
+    ## Make original_stdout_fd point to the same file as to_fd
+    #os.dup2(f.fileno(), original_stdout_fd)
+    #os.dup2(f.fileno(), original_stderr_fd)
 
-    # Create a new sys.stdout that points to the redirected fd
-    sys.stdout = os.fdopen(original_stdout_fd, 'wb', 0) # 0 makes them unbuffered
-    sys.stderr = os.fdopen(original_stderr_fd, 'wb', 0)
+    ## Create a new sys.stdout that points to the redirected fd
+    #sys.stdout = os.fdopen(original_stdout_fd, 'wb', 0) # 0 makes them unbuffered
+    #sys.stderr = os.fdopen(original_stderr_fd, 'wb', 0)
 
 
 class AMDOptimization(Component):
@@ -176,10 +176,10 @@ class AMDDriver(Driver):
 	self.success = self.fw.driver.success
 
 
-filename = 'output%03i.out'%MPI.COMM_WORLD.rank
-if MPI.COMM_WORLD.rank == 0:
-    filename = 'output.out'
-redirectIO(open(filename, 'w'))
+#filename = 'output%03i.out'%MPI.COMM_WORLD.rank
+#if MPI.COMM_WORLD.rank == 0:
+    #filename = 'output.out'
+#redirectIO(open(filename, 'w'))
 
 r2d = 180.0 / np.pi
 
