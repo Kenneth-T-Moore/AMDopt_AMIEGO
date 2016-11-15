@@ -69,6 +69,8 @@ class AMDOptimization(Component):
         self.fw = fw
 	self.alloc = alloc
 
+	self.iter_count = 0
+
         # Integer input that AMIEGO will set.
 
         self.add_param('flt_day', np.zeros((24, ), dtype=np.int))
@@ -117,12 +119,16 @@ class AMDOptimization(Component):
         alloc['flt_day'].value = flt_day_init
 
 	# Reinitialize driver with the new values each time.
-        driver = DriverPyOptSparse()#options={'Verify level':3})
+	options={'Print file' : 'AMIEGO_%03i' % self.iter_count,
+	         'Major feasibility tolerance' : 1e-6,
+	         'Major optimality tolerance' : 5e-5}
+        driver = DriverPyOptSparse(options=options)
         fw.compute()
         fw.init_driver(driver)
 
         # Run
         fw.run()
+	self.iter_count += 1
 
         # Load in optimum from SNOPT history
 	db = SqliteDict('mrun/hist.hst')
@@ -150,6 +156,25 @@ class AMDOptimization(Component):
 class AMDDriver(Driver):
     """ A run-once driver that can report its error state just like
     pyoptsparse."""
+
+    def __init__(self, fw):
+        """ Create AMDDriver instance."""
+        super(AMDDriver, self).__init__()
+	self.fw = fw
+	self.success = fw.driver.success
+
+    def run(self, problem):
+	""" Runs the driver. This function should be overridden when inheriting.
+
+	Args
+	----
+	problem : `Problem`
+	    Our parent `Problem`.
+	"""
+	super(AMDDriver, self).run(problem)
+
+	# Let AMIEGO know whether AMD optimization passed or failed.
+	self.success = self.fw.driver.success
 
 
 filename = 'output%03i.out'%MPI.COMM_WORLD.rank
@@ -306,7 +331,7 @@ root.add('p1', IndepVarComp('flt_day', np.zeros((24, ))), promotes=['*'])
 root.add('amd', AMDOptimization(fw, alloc, init_func), promotes=['*'])
 
 prob.driver = AMIEGO_driver()
-prob.driver.cont_opt = Driver()
+prob.driver.cont_opt = AMDDriver(fw)
 
 # To save time
 prob.driver.minlp.options['atol'] = 0.1
@@ -315,16 +340,12 @@ prob.driver.add_desvar('flt_day', lower=0, upper=6)
 prob.driver.add_objective('profit_1e6_d')
 #prob.driver.add_constraint('stress', upper=1.0)
 
-#npt = 5
-#samples = np.array([[1.0, 0.25, 0.75],
-                            #[0.0, 0.75, 0.0],
-                            #[0.75, 0.0, 0.25],
-                            #[0.75, 1.0, 0.49],
-                            #[0.25, 0.49, 1.0]])
+# Load pickles for initial sampling
+dv_samp = pickle.load( open( "../good_preopts/dv_samp.pkl", "rb" ) )
+obj_samp = pickle.load( open( "../good_preopts/obj_samp.pkl", "rb" ) )
+con_samp = pickle.load( open( "../good_preopts/con_samp.pkl", "rb" ) )
 
-#prob.driver.sampling = {'mat1' : samples[:, 0].reshape((npt, 1)),
-                                #'mat2' : samples[:, 1].reshape((npt, 1)),
-                                #'mat3' : samples[:, 2].reshape((npt, 1))}
+prob.driver.sampling = dv_samp
 
 prob.setup()
 
