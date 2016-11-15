@@ -343,7 +343,7 @@ prob.driver.add_objective('profit_1e6_d')
 # Load pickles for initial sampling
 dv_samp = pickle.load( open( "../good_preopts/dv_samp.pkl", "rb" ) )
 obj_samp = pickle.load( open( "../good_preopts/obj_samp.pkl", "rb" ) )
-con_samp = pickle.load( open( "../good_preopts/con_samp.pkl", "rb" ) )
+#con_samp = pickle.load( open( "../good_preopts/con_samp.pkl", "rb" ) )
 
 prob.driver.sampling = dv_samp
 
