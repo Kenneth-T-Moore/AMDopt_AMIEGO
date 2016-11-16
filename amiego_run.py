@@ -362,9 +362,13 @@ dv_samp = pickle.load( open( "../good_preopts/dv_samp.pkl", "rb" ) )
 obj_samp = pickle.load( open( "../good_preopts/obj_samp.pkl", "rb" ) )
 con_samp = pickle.load( open( "../good_preopts/con_samp.pkl", "rb" ) )
 
+reduced_con_samp = {}
+reduced_con_samp['ac_con'] = con_samp['ac_con']
+reduced_con_samp['pax_con'] = con_samp['pax_con']
+
 prob.driver.sampling = dv_samp
 prob.driver.obj_sampling = obj_samp
-prob.driver.con_sampling = con_samp
+prob.driver.con_sampling = reduced_con_samp
 
 prob.setup()
 
