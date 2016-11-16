@@ -89,20 +89,21 @@ class AMDOptimization(Component):
 
 	# However, we do need every single constraint.
 	self.add_output('ac_con', np.zeros((5, )))
-	self.add_output('pax_con', np.zeros((128, )))
-	self.add_output('thk_con', np.zeros((100, )))
-	self.add_output('vol_con', 0.0)
+	self.add_output('pax_con_upper', np.zeros((128, )))
+	self.add_output('pax_con_lower', np.zeros((128, )))
+	#self.add_output('thk_con', np.zeros((100, )))
+	#self.add_output('vol_con', 0.0)
 
 	# The gamma constraint is sized differently for each mission. Far easier to
 	# just read the sizes from the initial saved case.
-	for j in range(8):
-	    root = 'sys_msn%d' % j
+	#for j in range(8):
+	    #root = 'sys_msn%d' % j
 
-	    for var in ['gamma', 'Tmax', 'Tmin']:
-		name_i = root + '.' + var
-		name_o = root + ':' + var
-		size = len(init_func[name_i])
-		self.add_output(name_o, np.zeros((size,)))
+	    #for var in ['gamma', 'Tmax', 'Tmin']:
+		#name_i = root + '.' + var
+		#name_o = root + ':' + var
+		#size = len(init_func[name_i])
+		#self.add_output(name_o, np.zeros((size,)))
 
     def solve_nonlinear(self, params, unknowns, resids):
         """ Pulls integer params from vector, then runs the fw model.
@@ -141,9 +142,10 @@ class AMDOptimization(Component):
 
 	# Constraints
 	unknowns['ac_con'] = dvs_dict['ac_con']
-	unknowns['pax_con'] = dvs_dict['pax_con']
-	unknowns['thk_con'] = dvs_dict['thk_con']
-	unknowns['vol_con'] = dvs_dict['vol_con']
+	unknowns['pax_con_upper'] = dvs_dict['pax_con']
+	unknowns['pax_con_lower'] = dvs_dict['pax_con']
+	#unknowns['thk_con'] = dvs_dict['thk_con']
+	#unknowns['vol_con'] = dvs_dict['vol_con']
 
 	for j in range(8):
 	    root = 'sys_msn%d' % j
@@ -355,7 +357,8 @@ demand = np.array([   10.,   108.,  1396.,  3145.,   995.,  4067.,   639.,   321
 prob.driver.add_desvar('flt_day', lower=0, upper=6)
 prob.driver.add_objective('profit_1e6_d')
 prob.driver.add_constraint('ac_con', upper=2400.0)
-prob.driver.add_constraint('pax_con', lower=0.0, upper=2.0*demand)
+prob.driver.add_constraint('pax_con_upper', upper=2.0*demand)
+prob.driver.add_constraint('pax_con_lower', lower=0.0)
 
 # Load pickles for initial sampling
 dv_samp = pickle.load( open( "../good_preopts/dv_samp.pkl", "rb" ) )
@@ -364,7 +367,8 @@ con_samp = pickle.load( open( "../good_preopts/con_samp.pkl", "rb" ) )
 
 reduced_con_samp = {}
 reduced_con_samp['ac_con'] = con_samp['ac_con']
-reduced_con_samp['pax_con'] = con_samp['pax_con']
+reduced_con_samp['pax_con_upper'] = con_samp['pax_con']
+reduced_con_samp['pax_con_lower'] = con_samp['pax_con']
 
 prob.driver.sampling = dv_samp
 prob.driver.obj_sampling = obj_samp
