@@ -87,10 +87,10 @@ class AMDOptimization(Component):
 	# Objective Output
 	self.add_output('profit_1e6_d', 0.0)
 
-	# However, we do need every single constraint.
-	self.add_output('ac_con', np.zeros((5, )))
-	self.add_output('pax_con_upper', np.zeros((128, )))
-	self.add_output('pax_con_lower', np.zeros((128, )))
+	# We just need the constraints impacted by the integer vars.
+	self.add_output('ac_con', np.zeros((3, )))
+	self.add_output('pax_con_upper', np.zeros((8, )))
+	self.add_output('pax_con_lower', np.zeros((8, )))
 	#self.add_output('thk_con', np.zeros((100, )))
 	#self.add_output('vol_con', 0.0)
 
@@ -141,9 +141,10 @@ class AMDOptimization(Component):
 	unknowns['profit_1e6_d'] = dvs_dict['profit_1e6_d']
 
 	# Constraints
-	unknowns['ac_con'] = dvs_dict['ac_con']
-	unknowns['pax_con_upper'] = dvs_dict['pax_con']
-	unknowns['pax_con_lower'] = dvs_dict['pax_con']
+	unknowns['ac_con'] = dvs_dict['ac_con'][[1, 3, 4]]
+	unknowns['pax_con_upper'] = dvs_dict['pax_con'][:8]
+	unknowns['pax_con_lower'] = dvs_dict['pax_con'][:8]
+	#unknowns['thk_con'] = dvs_dict['thk_con']
 	#unknowns['thk_con'] = dvs_dict['thk_con']
 	#unknowns['vol_con'] = dvs_dict['vol_con']
 
@@ -337,22 +338,7 @@ prob.driver.cont_opt = AMDDriver(fw)
 # To save time
 prob.driver.minlp.options['atol'] = 0.1
 
-demand = np.array([   10.,   108.,  1396.,  3145.,   995.,  4067.,   639.,   321.,
-                      2237.,   502.,  1112.,    64.,   359.,   269.,   218.,   384.,
-                      132.,  1212.,   764.,   221.,    57.,  1341.,    79.,   186.,
-                      500.,   152.,   225.,    34.,   956.,   633.,    29.,   661.,
-                      1808.,   250.,  2138.,   538.,   131.,   381.,   329.,  1282.,
-                      105.,   157.,   245.,   172.,   308.,   356.,   317.,    80.,
-                      115.,    47.,   463.,   181.,   229.,    68.,   269.,   127.,
-                      103.,   630.,   310.,  1107.,   129.,   237.,   422.,   445.,
-                      66.,  1788.,   123.,   141.,  1553.,   209.,   341.,  2377.,
-                      118.,   932.,  1078.,  3090.,   487.,    12.,   194.,  1464.,
-                      1803.,   544.,    62.,   114.,  1673.,  1623.,  1044.,   496.,
-                      259.,   183.,    43.,   400.,   123.,  2108.,   481.,   763.,
-                      699.,   274.,   328.,  1228.,   889.,   194.,   432.,  1157.,
-                      231.,   184.,  2012.,  2172.,  3222.,   908.,   174.,  1164.,
-                      2603.,   254.,   544.,   177.,  1888.,  2296.,   133.,    75.,
-                      1499.,  1301.,   539.,    89.,  1029.,   290.,  1678.,   775.])
+demand = np.array([   10.,   108.,  1396.,  3145.,   995.,  4067.,   639.,   321.])
 
 prob.driver.add_desvar('flt_day', lower=0, upper=6)
 prob.driver.add_objective('profit_1e6_d')
@@ -365,10 +351,21 @@ dv_samp = pickle.load( open( "../good_preopts/dv_samp.pkl", "rb" ) )
 obj_samp = pickle.load( open( "../good_preopts/obj_samp.pkl", "rb" ) )
 con_samp = pickle.load( open( "../good_preopts/con_samp.pkl", "rb" ) )
 
+# Only create surrogates for the constraints that are used. They blow up
+# otherwise.
+con_samp_pax = []
+for samp in con_samp['pax_con']:
+    con_samp_pax.append(samp[:8])
+
+con_samp_ac = []
+for samp in con_samp['ac_con']:
+    con_samp_ac.append(samp[[1, 3, 4]])
+
 reduced_con_samp = {}
-reduced_con_samp['ac_con'] = con_samp['ac_con']
-reduced_con_samp['pax_con_upper'] = con_samp['pax_con']
-reduced_con_samp['pax_con_lower'] = con_samp['pax_con']
+reduced_con_samp['ac_con'] = con_samp_ac
+reduced_con_samp['pax_con_upper'] = con_samp_pax
+reduced_con_samp['pax_con_lower'] = con_samp_pax
+
 
 prob.driver.sampling = dv_samp
 prob.driver.obj_sampling = obj_samp
