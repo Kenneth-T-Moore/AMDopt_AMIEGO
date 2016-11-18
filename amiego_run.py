@@ -25,27 +25,24 @@ from MissionAnalysis.mission import Mission, add_quantities_mission
 from sumad import *
 
 
-#def redirectIO(f):
-    #"""
-    #Redirect stdout/stderr to the given file handle. Based on:
-    #http://eli.thegreenplace.net/2015/redirecting-all-kinds-of-stdout-in-python/.
-    #Written by Bret Naylor
-    #"""
-    #original_stdout_fd = sys.stdout.fileno()
-    #original_stderr_fd = sys.stderr.fileno()
+"""
+This shows the design variables that should be culled because they assign a
+flt/day to aircraft that cannot physically fly the route.
 
-    ## Flush and close sys.stdout/err - also closes the file descriptors (fd)
-    #sys.stdout.close()
-    #sys.stderr.close()
+[1:5 10:]
 
-    ## Make original_stdout_fd point to the same file as to_fd
-    #os.dup2(f.fileno(), original_stdout_fd)
-    #os.dup2(f.fileno(), original_stderr_fd)
-
-    ## Create a new sys.stdout that points to the redirected fd
-    #sys.stdout = os.fdopen(original_stdout_fd, 'wb', 0) # 0 makes them unbuffered
-    #sys.stderr = os.fdopen(original_stderr_fd, 'wb', 0)
-
+data['ac_data'][('block time', 'B738')][:8]
+array([  1.00000000e+15,   5.40044600e+00,   4.73839400e+00,
+         5.17117800e+00,   5.15223600e+00,   1.00000000e+15,
+         1.00000000e+15,   1.00000000e+15])
+data['ac_data'][('block time', 'B747')][:8]
+array([  1.00000000e+15,   5.04604000e+00,   4.43854000e+00,
+         4.83672903e+00,   4.81867194e+00,   6.54317778e+00,
+         6.78287778e+00,   6.35066444e+00])
+data['ac_data'][('block time', 'B777')][:8]
+array([ 14.8867    ,   5.200842  ,   4.57873708,   4.98679504,
+         4.96874848,   6.742045  ,   6.98413   ,   6.53992   ])
+"""
 
 class AMDOptimization(Component):
     """ Simple Component wrapper that can execute the AMD model.
@@ -73,7 +70,7 @@ class AMDOptimization(Component):
 
         # Integer input that AMIEGO will set.
 
-        self.add_param('flt_day', np.zeros((24, ), dtype=np.int))
+        self.add_param('flt_day', np.zeros((19, ), dtype=np.int))
 
         # Continuous desvars are just outputs.
 	# Note, it is not necessary for AMIEGO to know about all of these. Just for
@@ -81,8 +78,8 @@ class AMDOptimization(Component):
 	# but twist, shape, and the cp an M0 for each mission will be ignored here,
 	# but saved off in the history file.
 
-	n_i = len(alloc['pax_flt'].value.shape)
-	self.add_output('pax_flt', np.zeros((n_i, )))
+	#n_i = len(alloc['pax_flt'].value.shape)
+	#self.add_output('pax_flt', np.zeros((n_i, )))
 
 	# Objective Output
 	self.add_output('profit_1e6_d', 0.0)
@@ -90,7 +87,7 @@ class AMDOptimization(Component):
 	# We just need the constraints impacted by the integer vars.
 	self.add_output('ac_con', np.zeros((3, )))
 	self.add_output('pax_con_upper', np.zeros((8, )))
-	self.add_output('pax_con_lower', np.zeros((8, )))
+	#self.add_output('pax_con_lower', np.zeros((8, )))
 	#self.add_output('thk_con', np.zeros((100, )))
 	#self.add_output('vol_con', 0.0)
 
@@ -114,9 +111,9 @@ class AMDOptimization(Component):
         # Pull integer design variables from params and assign them into fw
 	flt_day_init = numpy.zeros((num_ac, num_rt))
 	raw = params['flt_day']
-	flt_day_init[1, :8] = raw[:8]
-	flt_day_init[3, :8] = raw[8:16]
-	flt_day_init[4, :8] = raw[16:24]
+	flt_day_init[1, 1:5] = raw[:4]
+	flt_day_init[3, 1:8] = raw[4:11]
+	flt_day_init[4, :8] = raw[11:19]
         alloc['flt_day'].value = flt_day_init
 
 	# Reinitialize driver with the new values each time.
@@ -143,17 +140,17 @@ class AMDOptimization(Component):
 	# Constraints
 	unknowns['ac_con'] = dvs_dict['ac_con'][[1, 3, 4]]
 	unknowns['pax_con_upper'] = dvs_dict['pax_con'][:8]
-	unknowns['pax_con_lower'] = dvs_dict['pax_con'][:8]
+	#unknowns['pax_con_lower'] = dvs_dict['pax_con'][:8]
 	#unknowns['thk_con'] = dvs_dict['thk_con']
 	#unknowns['thk_con'] = dvs_dict['thk_con']
 	#unknowns['vol_con'] = dvs_dict['vol_con']
 
-	for j in range(8):
-	    root = 'sys_msn%d' % j
-	    for var in ['gamma', 'Tmax', 'Tmin']:
-		name_i = root + '.' + var
-		name_o = root + ':' + var
-		unknowns[name_o] = dvs_dict[name_i]
+	#for j in range(8):
+	    #root = 'sys_msn%d' % j
+	    #for var in ['gamma', 'Tmax', 'Tmin']:
+		#name_i = root + '.' + var
+		#name_o = root + ':' + var
+		#unknowns[name_o] = dvs_dict[name_i]
 
 
 class AMDDriver(Driver):
@@ -329,7 +326,7 @@ init_func = pickle.load( open( "../good_preopts/funcs_000.pkl", "rb" ) )
 
 prob = Problem(impl=PetscImpl)
 prob.root = root = Group()
-root.add('p1', IndepVarComp('flt_day', np.zeros((24, ), dtype=np.int)), promotes=['*'])
+root.add('p1', IndepVarComp('flt_day', np.zeros((19, ), dtype=np.int)), promotes=['*'])
 root.add('amd', AMDOptimization(fw, alloc, init_func), promotes=['*'])
 
 prob.driver = AMIEGO_driver()
@@ -344,12 +341,15 @@ prob.driver.add_desvar('flt_day', lower=0, upper=6)
 prob.driver.add_objective('profit_1e6_d')
 prob.driver.add_constraint('ac_con', upper=2400.0)
 prob.driver.add_constraint('pax_con_upper', upper=2.0*demand)
-prob.driver.add_constraint('pax_con_lower', lower=0.0)
+#prob.driver.add_constraint('pax_con_lower', lower=0.0)
 
 # Load pickles for initial sampling
-dv_samp = pickle.load( open( "../good_preopts/dv_samp.pkl", "rb" ) )
-obj_samp = pickle.load( open( "../good_preopts/obj_samp.pkl", "rb" ) )
-con_samp = pickle.load( open( "../good_preopts/con_samp.pkl", "rb" ) )
+#dv_samp = pickle.load( open( "../good_preopts/dv_samp.pkl", "rb" ) )
+#obj_samp = pickle.load( open( "../good_preopts/obj_samp.pkl", "rb" ) )
+#con_samp = pickle.load( open( "../good_preopts/con_samp.pkl", "rb" ) )
+dv_samp = pickle.load( open( "../good_preopts/dv_samp_w_bad.pkl", "rb" ) )
+obj_samp = pickle.load( open( "../good_preopts/obj_samp_w_bad.pkl", "rb" ) )
+con_samp = pickle.load( open( "../good_preopts/con_samp_w_bad.pkl", "rb" ) )
 
 # Only create surrogates for the constraints that are used. They blow up
 # otherwise.
@@ -364,10 +364,17 @@ for samp in con_samp['ac_con']:
 reduced_con_samp = {}
 reduced_con_samp['ac_con'] = con_samp_ac
 reduced_con_samp['pax_con_upper'] = con_samp_pax
-reduced_con_samp['pax_con_lower'] = con_samp_pax
+#reduced_con_samp['pax_con_lower'] = con_samp_pax
 
+# Reduce DVs too to get rid of impossible cases.
+reduced_dv_samp = {}
+reduced_dv_samp['flt_day'] = []
+for samp in dv_samp['flt_day']:
+    reduced_dv_samp['flt_day'].append(samp[[1, 2, 3, 4,
+                                            9, 10, 11, 12, 13, 14, 15,
+                                            16, 17, 18, 19, 20, 21, 22, 23]])
 
-prob.driver.sampling = dv_samp
+prob.driver.sampling = reduced_dv_samp
 prob.driver.obj_sampling = obj_samp
 prob.driver.con_sampling = reduced_con_samp
 
