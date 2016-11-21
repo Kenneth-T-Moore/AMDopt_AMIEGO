@@ -344,12 +344,12 @@ prob.driver.add_constraint('pax_con_upper', upper=2.0*demand)
 #prob.driver.add_constraint('pax_con_lower', lower=0.0)
 
 # Load pickles for initial sampling
-#dv_samp = pickle.load( open( "../good_preopts/dv_samp.pkl", "rb" ) )
-#obj_samp = pickle.load( open( "../good_preopts/obj_samp.pkl", "rb" ) )
-#con_samp = pickle.load( open( "../good_preopts/con_samp.pkl", "rb" ) )
-dv_samp = pickle.load( open( "../good_preopts/dv_samp_w_bad.pkl", "rb" ) )
-obj_samp = pickle.load( open( "../good_preopts/obj_samp_w_bad.pkl", "rb" ) )
-con_samp = pickle.load( open( "../good_preopts/con_samp_w_bad.pkl", "rb" ) )
+dv_samp = pickle.load( open( "../good_preopts/dv_samp.pkl", "rb" ) )
+obj_samp = pickle.load( open( "../good_preopts/obj_samp.pkl", "rb" ) )
+con_samp = pickle.load( open( "../good_preopts/con_samp.pkl", "rb" ) )
+dv_samp_bad = pickle.load( open( "../good_preopts/dv_samp_w_bad.pkl", "rb" ) )
+#obj_samp = pickle.load( open( "../good_preopts/obj_samp_w_bad.pkl", "rb" ) )
+#con_samp = pickle.load( open( "../good_preopts/con_samp_w_bad.pkl", "rb" ) )
 
 # Only create surrogates for the constraints that are used. They blow up
 # otherwise.
@@ -374,9 +374,17 @@ for samp in dv_samp['flt_day']:
                                             9, 10, 11, 12, 13, 14, 15,
                                             16, 17, 18, 19, 20, 21, 22, 23]])
 
+# Reduce bad DVs too to get rid of impossible cases.
+reduced_dv_samp_bad = {}
+reduced_dv_samp_bad['flt_day'] = []
+for samp in dv_samp_bad['flt_day'][28:]:
+    reduced_dv_samp_bad['flt_day'].append(samp[[1, 2, 3, 4,
+                                            9, 10, 11, 12, 13, 14, 15,
+                                            16, 17, 18, 19, 20, 21, 22, 23]])
 prob.driver.sampling = reduced_dv_samp
 prob.driver.obj_sampling = obj_samp
 prob.driver.con_sampling = reduced_con_samp
+prob.driver.minlp.bad_samples
 
 prob.setup()
 
