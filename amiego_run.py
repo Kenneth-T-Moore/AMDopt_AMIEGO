@@ -334,6 +334,7 @@ prob.driver.cont_opt = AMDDriver(fw)
 
 # To save time
 prob.driver.minlp.options['atol'] = 0.1
+#prob.driver.minlp.options['local_search'] = True
 
 demand = np.array([   10.,   108.,  1396.,  3145.,   995.,  4067.,   639.,   321.])
 
@@ -384,7 +385,9 @@ for samp in dv_samp_bad['flt_day'][28:]:
 prob.driver.sampling = reduced_dv_samp
 prob.driver.obj_sampling = obj_samp
 prob.driver.con_sampling = reduced_con_samp
-prob.driver.minlp.bad_samples
+
+# Remove these for now. If anything, try adding just the int failures later on.
+#prob.driver.minlp.bad_samples
 
 prob.setup()
 
