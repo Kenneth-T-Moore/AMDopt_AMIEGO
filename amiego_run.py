@@ -220,6 +220,7 @@ dv_samp_bad = pickle.load( open( "../good_preopts/dv_samp_w_bad.pkl", "rb" ) )
 # Warmer Start from Initial Conditions
 #-------------------------------------
 init_dv = pickle.load( open( "../good_preopts/dvs_000.pkl", "rb" ) )
+init_func = pickle.load( open( "../good_preopts/funcs_000.pkl", "rb" ) )
 
 DVGeo, DVCon = init_func3(nTwist)
 
@@ -275,8 +276,8 @@ alloc = Allocation('sys_alloc', ac_path=ac_path, rt_data=rt_data,
                    interp=interp, yt=yt, num_hi=npt)
 
 top = Assembly('sys_top', subsystems=[
-    IndVar('twist', init_dv['twist']),
-    IndVar('shape', init_dv['shape']),
+    IndVar('twist', value=init_dv['twist']),
+    IndVar('shape', value=init_dv['shape']),
     SysDVCon('sys_dv_con', nTwist=nTwist, nShape=nShape,
              DVGeo=DVGeo, DVCon=DVCon),
     sys_aero_groups,
