@@ -121,7 +121,6 @@ class AMDOptimization(Component):
 	         'Major feasibility tolerance' : 1e-6,
 	         'Major optimality tolerance' : 5e-5}
         driver = DriverPyOptSparse(options=options)
-        fw.compute()
         fw.init_driver(driver)
 
         # Run
@@ -311,6 +310,7 @@ add_quantities_alloc(fw)
 
 # Final MAUD setup stuff
 fw.init_vectors()
+fw.compute()
 fw.top.set_print(False)
 
 #-------------------------------------
