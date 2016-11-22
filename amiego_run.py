@@ -114,7 +114,7 @@ class AMDOptimization(Component):
 	flt_day_init[1, 1:5] = raw[:4]
 	flt_day_init[3, 1:8] = raw[4:11]
 	flt_day_init[4, :8] = raw[11:19]
-        alloc['flt_day'].value = flt_day_init
+        alloc['flt_day'].value = flt_day_init.flatten()
 
 	# Reinitialize driver with the new values each time.
 	options={'Print file' : 'AMIEGO_%03i' % self.iter_count,
