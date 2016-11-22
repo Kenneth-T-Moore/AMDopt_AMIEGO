@@ -9,6 +9,7 @@ import sys
 
 import numpy as np
 from mpi4py import MPI
+from sqlitedict import SqliteDict
 
 from openmdao.api import Component, Problem, Group, Driver, IndepVarComp
 from openmdao.core.petsc_impl import PetscImpl
