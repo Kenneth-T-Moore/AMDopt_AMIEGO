@@ -207,6 +207,19 @@ interp, yt = setup_drag_rmts(A_list0, M_list0)
 nTwist = 6
 nShape = 72
 
+# Load pickles for initial sampling
+dv_samp = pickle.load( open( "../good_preopts/dv_samp.pkl", "rb" ) )
+obj_samp = pickle.load( open( "../good_preopts/obj_samp.pkl", "rb" ) )
+con_samp = pickle.load( open( "../good_preopts/con_samp.pkl", "rb" ) )
+dv_samp_bad = pickle.load( open( "../good_preopts/dv_samp_w_bad.pkl", "rb" ) )
+#obj_samp = pickle.load( open( "../good_preopts/obj_samp_w_bad.pkl", "rb" ) )
+#con_samp = pickle.load( open( "../good_preopts/con_samp_w_bad.pkl", "rb" ) )
+
+#-------------------------------------
+# Warmer Start from Initial Conditions
+#-------------------------------------
+init_dv = pickle.load( open( "../good_preopts/dvs_000.pkl", "rb" ) )
+
 DVGeo, DVCon = init_func3(nTwist)
 
 aero_groups = []
@@ -261,8 +274,8 @@ alloc = Allocation('sys_alloc', ac_path=ac_path, rt_data=rt_data,
                    interp=interp, yt=yt, num_hi=npt)
 
 top = Assembly('sys_top', subsystems=[
-    IndVar('twist', value=0*np.ones(nTwist)),
-    IndVar('shape', value=0*np.ones(nShape)),
+    IndVar('twist', init_dv['twist']),
+    IndVar('shape', init_dv['shape']),
     SysDVCon('sys_dv_con', nTwist=nTwist, nShape=nShape,
              DVGeo=DVGeo, DVCon=DVCon),
     sys_aero_groups,
@@ -277,9 +290,9 @@ fw = Framework()
 fw.init_systems(top)
 
 fw.add_quantity('input', 'twist', indices=range(nTwist),
-                lower=-10, upper=10, scale=1000.0)
+                lower=-10, upper=10, scale=5000.0)
 fw.add_quantity('input', 'shape', indices=range(nShape),
-                lower=-0.5, upper=0.5, scale=1000.0)
+                lower=-0.5, upper=0.5, scale=5000.0)
 fw.add_quantity('output', 'vol_con', indices=[0],
                 lower=1.0, upper=3.0, group='g:pax_con')
 fw.add_quantity('output', 'thk_con', indices=range(100),
@@ -313,13 +326,6 @@ fw.init_vectors()
 fw.compute()
 fw.top.set_print(False)
 
-#-------------------------------------
-# Warmer Start from Initial Conditions
-#-------------------------------------
-
-init_dv = pickle.load( open( "../good_preopts/dvs_000.pkl", "rb" ) )
-init_func = pickle.load( open( "../good_preopts/funcs_000.pkl", "rb" ) )
-
 #----------------------
 # Build OpenMDAO Model
 #----------------------
@@ -343,14 +349,6 @@ prob.driver.add_objective('profit_1e6_d')
 prob.driver.add_constraint('ac_con', upper=2400.0)
 prob.driver.add_constraint('pax_con_upper', upper=2.0*demand)
 #prob.driver.add_constraint('pax_con_lower', lower=0.0)
-
-# Load pickles for initial sampling
-dv_samp = pickle.load( open( "../good_preopts/dv_samp.pkl", "rb" ) )
-obj_samp = pickle.load( open( "../good_preopts/obj_samp.pkl", "rb" ) )
-con_samp = pickle.load( open( "../good_preopts/con_samp.pkl", "rb" ) )
-dv_samp_bad = pickle.load( open( "../good_preopts/dv_samp_w_bad.pkl", "rb" ) )
-#obj_samp = pickle.load( open( "../good_preopts/obj_samp_w_bad.pkl", "rb" ) )
-#con_samp = pickle.load( open( "../good_preopts/con_samp_w_bad.pkl", "rb" ) )
 
 # Only create surrogates for the constraints that are used. They blow up
 # otherwise.
