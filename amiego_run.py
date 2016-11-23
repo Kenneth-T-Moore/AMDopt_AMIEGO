@@ -135,15 +135,15 @@ class AMDOptimization(Component):
 	db.close()
 
 	# Objective
-	unknowns['profit_1e6_d'] = dvs_dict['profit_1e6_d']
+	unknowns['profit_1e6_d'] = funcs_dict['profit_1e6_d']
 
 	# Constraints
-	unknowns['ac_con'] = dvs_dict['ac_con'][[1, 3, 4]]
-	unknowns['pax_con_upper'] = dvs_dict['pax_con'][:8]
-	#unknowns['pax_con_lower'] = dvs_dict['pax_con'][:8]
-	#unknowns['thk_con'] = dvs_dict['thk_con']
-	#unknowns['thk_con'] = dvs_dict['thk_con']
-	#unknowns['vol_con'] = dvs_dict['vol_con']
+	unknowns['ac_con'] = funcs_dict['ac_con'][[1, 3, 4]]
+	unknowns['pax_con_upper'] = funcs_dict['pax_con'][:8]
+	#unknowns['pax_con_lower'] = funcs_dict['pax_con'][:8]
+	#unknowns['thk_con'] = funcs_dict['thk_con']
+	#unknowns['thk_con'] = funcs_dict['thk_con']
+	#unknowns['vol_con'] = funcs_dict['vol_con']
 
 	#for j in range(8):
 	    #root = 'sys_msn%d' % j
