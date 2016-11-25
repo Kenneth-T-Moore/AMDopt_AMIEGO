@@ -123,6 +123,7 @@ class AMDOptimization(Component):
 	         'Major optimality tolerance' : 5e-5}
         driver = DriverPyOptSparse(options=options)
         fw.init_driver(driver)
+        fw.top.set_print(False)
 
         # Run
         fw.run()
