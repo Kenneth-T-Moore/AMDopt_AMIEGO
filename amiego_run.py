@@ -145,12 +145,11 @@ class AMDOptimization(Component):
 	#unknowns['thk_con'] = funcs_dict['thk_con']
 	#unknowns['vol_con'] = funcs_dict['vol_con']
 
-	#for j in range(8):
-	    #root = 'sys_msn%d' % j
-	    #for var in ['gamma', 'Tmax', 'Tmin']:
-		#name_i = root + '.' + var
-		#name_o = root + ':' + var
-		#unknowns[name_o] = dvs_dict[name_i]
+	# Save out the case
+	if not MPI or self.comm.rank == 0:
+
+	    pickle.dump(dvs_dict, open( 'post_data/dvs_%03i.pkl' % self.itercount, "wb" ) )
+	    pickle.dump(funcs_dict, open( 'post_data/funcs_%03i.pkl' % self.itercount, "wb" ) )
 
 
 class AMDDriver(Driver):
@@ -342,7 +341,7 @@ prob.driver.cont_opt = AMDDriver(fw)
 
 # To save time
 prob.driver.minlp.options['atol'] = 0.1
-#prob.driver.minlp.options['local_search'] = True
+prob.driver.minlp.options['local_search'] = True
 
 demand = np.array([   10.,   108.,  1396.,  3145.,   995.,  4067.,   639.,   321.])
 
