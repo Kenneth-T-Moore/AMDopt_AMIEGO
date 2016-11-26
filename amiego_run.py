@@ -149,8 +149,8 @@ class AMDOptimization(Component):
 	# Save out the case
 	if not MPI or self.comm.rank == 0:
 
-	    pickle.dump(dvs_dict, open( 'post_data/dvs_%03i.pkl' % self.itercount, "wb" ) )
-	    pickle.dump(funcs_dict, open( 'post_data/funcs_%03i.pkl' % self.itercount, "wb" ) )
+	    pickle.dump(dvs_dict, open( 'post_data/dvs_%03i.pkl' % self.iter_count, "wb" ) )
+	    pickle.dump(funcs_dict, open( 'post_data/funcs_%03i.pkl' % self.iter_count, "wb" ) )
 
 
 class AMDDriver(Driver):
