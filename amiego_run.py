@@ -124,14 +124,14 @@ class AMDOptimization(Component):
 	# Load initial real design values from one of the preopts
 	# Using first point now, which is best.
 	# Set initial conditions from best preopt
-	alloc['pax_flt'].value = init_dv['pax_flt']
-	top['shape'].value = init_dv['shape']
-	top['twist'].value = init_dv['twist']
+	alloc['pax_flt'].value = init_dv['pax_flt'].flatten()
+	top['shape'].value = init_dv['shape'].flatten()
+	top['twist'].value = init_dv['twist'].flatten()
 	for j in range(8):
 	    root = 'sys_msn%d.' % j
 	    for var in ['M0', 'h_cp']:
 		name = root + var
-		alloc[prefix[:-1]][var].value = init_dv[name]
+		alloc[prefix[:-1]][var].value = init_dv[name].flatten()
 
 	# Reinitialize driver with the new values each time.
 	options={'Print file' : 'AMIEGO_%03i' % self.iter_count,
