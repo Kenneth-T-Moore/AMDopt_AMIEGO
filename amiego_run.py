@@ -60,13 +60,13 @@ class AMDOptimization(Component):
     init_func : dict
         Initial values of obj/constraints - needed just for sizing.
     """
-    def __init__(self, fw, alloc, dvcon, init_func):
+    def __init__(self, fw, alloc, dvgeo, init_func):
         """ Create AMDOptimization instance."""
         super(AMDOptimization, self).__init__()
 
         self.fw = fw
 	self.alloc = alloc
-	self.dvcon = dvcon
+	self.dvgeo = dvgeo
 
 	self.iter_count = 0
 
@@ -336,8 +336,8 @@ fw.top.set_print(False)
 
 # Set initial conditions from best preopt
 alloc['pax_flt'].value = init_dv['pax_flt']
-dvcon['shape'].value = init_dv['shape']
-dvcon['twist'].value = init_dv['twist']
+DVGeo['shape'].value = init_dv['shape']
+DVGeo['twist'].value = init_dv['twist']
 for j in range(8):
     root = 'sys_msn%d.' % j
     for var in ['M0', 'h_cp']:
@@ -351,7 +351,7 @@ for j in range(8):
 prob = Problem(impl=PetscImpl)
 prob.root = root = Group()
 root.add('p1', IndepVarComp('flt_day', np.zeros((19, ), dtype=np.int)), promotes=['*'])
-root.add('amd', AMDOptimization(fw, alloc, dvcon, init_func), promotes=['*'])
+root.add('amd', AMDOptimization(fw, alloc, DVGeo, init_func), promotes=['*'])
 
 prob.driver = AMIEGO_driver()
 prob.driver.cont_opt = AMDDriver(fw)
