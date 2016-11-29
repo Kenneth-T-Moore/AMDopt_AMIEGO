@@ -55,7 +55,7 @@ class AMDOptimization(Component):
 
     alloc: Assembly
         Pointer to the allocation assembly. Passed in because I am not sure MAUD
-	has a way to get it.
+        has a way to get it.
 
     init_func : dict
         Initial values of obj/constraints - needed just for sizing.
@@ -65,108 +65,108 @@ class AMDOptimization(Component):
         super(AMDOptimization, self).__init__()
 
         self.fw = fw
-	self.alloc = alloc
-	self.top = top
-	self.init_dv = init_dv
+        self.alloc = alloc
+        self.top = top
+        self.init_dv = init_dv
 
-	self.iter_count = 0
+        self.iter_count = 0
 
         # Integer input that AMIEGO will set.
 
         self.add_param('flt_day', np.zeros((19, ), dtype=np.int))
 
         # Continuous desvars are just outputs.
-	# Note, it is not necessary for AMIEGO to know about all of these. Just for
-	# simplicity's sake, AMIEGO will track progress on passengers per flight,
-	# but twist, shape, and the cp an M0 for each mission will be ignored here,
-	# but saved off in the history file.
+        # Note, it is not necessary for AMIEGO to know about all of these. Just for
+        # simplicity's sake, AMIEGO will track progress on passengers per flight,
+        # but twist, shape, and the cp an M0 for each mission will be ignored here,
+        # but saved off in the history file.
 
-	#n_i = len(alloc['pax_flt'].value.shape)
-	#self.add_output('pax_flt', np.zeros((n_i, )))
+        #n_i = len(alloc['pax_flt'].value.shape)
+        #self.add_output('pax_flt', np.zeros((n_i, )))
 
-	# Objective Output
-	self.add_output('profit_1e6_d', 0.0)
+        # Objective Output
+        self.add_output('profit_1e6_d', 0.0)
 
-	# We just need the constraints impacted by the integer vars.
-	self.add_output('ac_con', np.zeros((3, )))
-	self.add_output('pax_con_upper', np.zeros((8, )))
-	#self.add_output('pax_con_lower', np.zeros((8, )))
-	#self.add_output('thk_con', np.zeros((100, )))
-	#self.add_output('vol_con', 0.0)
+        # We just need the constraints impacted by the integer vars.
+        self.add_output('ac_con', np.zeros((3, )))
+        self.add_output('pax_con_upper', np.zeros((8, )))
+        #self.add_output('pax_con_lower', np.zeros((8, )))
+        #self.add_output('thk_con', np.zeros((100, )))
+        #self.add_output('vol_con', 0.0)
 
-	# The gamma constraint is sized differently for each mission. Far easier to
-	# just read the sizes from the initial saved case.
-	#for j in range(8):
-	    #root = 'sys_msn%d' % j
+        # The gamma constraint is sized differently for each mission. Far easier to
+        # just read the sizes from the initial saved case.
+        #for j in range(8):
+            #root = 'sys_msn%d' % j
 
-	    #for var in ['gamma', 'Tmax', 'Tmin']:
-		#name_i = root + '.' + var
-		#name_o = root + ':' + var
-		#size = len(init_func[name_i])
-		#self.add_output(name_o, np.zeros((size,)))
+            #for var in ['gamma', 'Tmax', 'Tmin']:
+                #name_i = root + '.' + var
+                #name_o = root + ':' + var
+                #size = len(init_func[name_i])
+                #self.add_output(name_o, np.zeros((size,)))
 
     def solve_nonlinear(self, params, unknowns, resids):
         """ Pulls integer params from vector, then runs the fw model.
         """
         fw = self.fw
-	alloc = self.alloc
-	top = self.top
-	init_dv = self.init_dv
+        alloc = self.alloc
+        top = self.top
+        init_dv = self.init_dv
 
         # Pull integer design variables from params and assign them into fw
-	flt_day_init = numpy.zeros((num_ac, num_rt))
-	raw = params['flt_day']
-	flt_day_init[1, 1:5] = raw[:4]
-	flt_day_init[3, 1:8] = raw[4:11]
-	flt_day_init[4, :8] = raw[11:19]
+        flt_day_init = numpy.zeros((num_ac, num_rt))
+        raw = params['flt_day']
+        flt_day_init[1, 1:5] = raw[:4]
+        flt_day_init[3, 1:8] = raw[4:11]
+        flt_day_init[4, :8] = raw[11:19]
         alloc['flt_day'].value = flt_day_init.flatten()
 
-	# Load initial real design values from one of the preopts
-	# Using first point now, which is best.
-	# Set initial conditions from best preopt
-	alloc['pax_flt'].value = init_dv['pax_flt'].flatten()
-	top['shape'].value = init_dv['shape'].flatten()
-	top['twist'].value = init_dv['twist'].flatten()
-	for j in range(8):
-	    root = 'sys_msn%d.' % j
-	    for var in ['M0', 'h_cp']:
-		name = root + var
-		alloc[prefix[:-1]][var].value = init_dv[name].flatten()
+        # Load initial real design values from one of the preopts
+        # Using first point now, which is best.
+        # Set initial conditions from best preopt
+        alloc['pax_flt'].value = init_dv['pax_flt'].flatten()
+        top['shape'].value = init_dv['shape'].flatten()
+        top['twist'].value = init_dv['twist'].flatten()
+        for j in range(8):
+            root = 'sys_msn%d.' % j
+            for var in ['M0', 'h_cp']:
+                name = root + var
+                alloc[prefix[:-1]][var].value = init_dv[name].flatten()
 
-	# Reinitialize driver with the new values each time.
-	options={'Print file' : 'AMIEGO_%03i' % self.iter_count,
-	         'Major feasibility tolerance' : 1e-6,
-	         'Major optimality tolerance' : 5e-5}
+        # Reinitialize driver with the new values each time.
+        options={'Print file' : 'AMIEGO_%03i' % self.iter_count,
+                 'Major feasibility tolerance' : 1e-6,
+                 'Major optimality tolerance' : 5e-5}
         driver = DriverPyOptSparse(options=options)
         fw.init_driver(driver)
         fw.top.set_print(False)
 
         # Run
         fw.run()
-	self.iter_count += 1
+        self.iter_count += 1
 
         # Load in optimum from SNOPT history
-	db = SqliteDict('mrun/hist.hst')
-	dvs_dict = db[db['last']]['xuser']
-	funcs_dict = db[db['last']]['funcs']
-	db.close()
+        db = SqliteDict('mrun/hist.hst')
+        dvs_dict = db[db['last']]['xuser']
+        funcs_dict = db[db['last']]['funcs']
+        db.close()
 
-	# Objective
-	unknowns['profit_1e6_d'] = funcs_dict['profit_1e6_d']
+        # Objective
+        unknowns['profit_1e6_d'] = funcs_dict['profit_1e6_d']
 
-	# Constraints
-	unknowns['ac_con'] = funcs_dict['ac_con'][[1, 3, 4]]
-	unknowns['pax_con_upper'] = funcs_dict['pax_con'][:8]
-	#unknowns['pax_con_lower'] = funcs_dict['pax_con'][:8]
-	#unknowns['thk_con'] = funcs_dict['thk_con']
-	#unknowns['thk_con'] = funcs_dict['thk_con']
-	#unknowns['vol_con'] = funcs_dict['vol_con']
+        # Constraints
+        unknowns['ac_con'] = funcs_dict['ac_con'][[1, 3, 4]]
+        unknowns['pax_con_upper'] = funcs_dict['pax_con'][:8]
+        #unknowns['pax_con_lower'] = funcs_dict['pax_con'][:8]
+        #unknowns['thk_con'] = funcs_dict['thk_con']
+        #unknowns['thk_con'] = funcs_dict['thk_con']
+        #unknowns['vol_con'] = funcs_dict['vol_con']
 
-	# Save out the case
-	if not MPI or self.comm.rank == 0:
+        # Save out the case
+        if not MPI or self.comm.rank == 0:
 
-	    pickle.dump(dvs_dict, open( 'post_data/dvs_%03i.pkl' % self.iter_count, "wb" ) )
-	    pickle.dump(funcs_dict, open( 'post_data/funcs_%03i.pkl' % self.iter_count, "wb" ) )
+            pickle.dump(dvs_dict, open( 'post_data/dvs_%03i.pkl' % self.iter_count, "wb" ) )
+            pickle.dump(funcs_dict, open( 'post_data/funcs_%03i.pkl' % self.iter_count, "wb" ) )
 
 
 class AMDDriver(Driver):
@@ -176,20 +176,20 @@ class AMDDriver(Driver):
     def __init__(self, fw):
         """ Create AMDDriver instance."""
         super(AMDDriver, self).__init__()
-	self.fw = fw
+        self.fw = fw
 
     def run(self, problem):
-	""" Runs the driver. This function should be overridden when inheriting.
+        """ Runs the driver. This function should be overridden when inheriting.
 
-	Args
-	----
-	problem : `Problem`
-	    Our parent `Problem`.
-	"""
-	super(AMDDriver, self).run(problem)
+        Args
+        ----
+        problem : `Problem`
+            Our parent `Problem`.
+        """
+        super(AMDDriver, self).run(problem)
 
-	# Let AMIEGO know whether AMD optimization passed or failed.
-	self.success = self.fw.driver.success
+        # Let AMIEGO know whether AMD optimization passed or failed.
+        self.success = self.fw.driver.success
 
 
 #filename = 'output%03i.out'%MPI.COMM_WORLD.rank
@@ -328,7 +328,7 @@ for imsn in xrange(num_rt * num_new_ac):
     # Mission design variables get added here.
     # Optimizer only considers the first 8 routes.
     if imsn < 8:
-	add_quantities_mission(fw, prefix, num_cp, num_pt)
+        add_quantities_mission(fw, prefix, num_cp, num_pt)
 
 flt_day_init = ac_data['flt_day'].flatten(order='C')
 pax_flt_init = ac_data['pax_flt'].flatten(order='C')
@@ -347,14 +347,22 @@ fw.compute()
 fw.top.set_print(False)
 
 # Set initial conditions from best preopt
+print('pax_flt before', top['pax_flt'].value)
 alloc['pax_flt'].value = init_dv['pax_flt']
+print('pax_flt after', top['pax_flt'].value)
+print('shape before', top['shape'].value)
 top['shape'].value = init_dv['shape']
+print('shape after', top['shape'].value)
+print('twist before', top['twist'].value)
 top['twist'].value = init_dv['twist']
+print('twist after', top['twist'].value)
 for j in range(8):
     root = 'sys_msn%d.' % j
     for var in ['M0', 'h_cp']:
-	name = root + var
-	alloc[prefix[:-1]][var].value = init_dv[name]
+        name = root + var
+        print(name, 'before', alloc[prefix[:-1]][var].value)
+        alloc[prefix[:-1]][var].value = init_dv[name]
+        print(name, 'after', alloc[prefix[:-1]][var].value)
 
 #----------------------
 # Build OpenMDAO Model
