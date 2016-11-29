@@ -336,8 +336,8 @@ fw.top.set_print(False)
 
 # Set initial conditions from best preopt
 alloc['pax_flt'].value = init_dv['pax_flt']
-sys_aero_groups['shape'].value = init_dv['shape']
-sys_aero_groups['twist'].value = init_dv['twist']
+top['shape'].value = init_dv['shape']
+top['twist'].value = init_dv['twist']
 for j in range(8):
     root = 'sys_msn%d.' % j
     for var in ['M0', 'h_cp']:
