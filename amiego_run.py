@@ -342,7 +342,7 @@ for j in range(8):
     root = 'sys_msn%d.' % j
     for var in ['M0', 'h_cp']:
 	name = root + var
-	alloc[prefix[:-1]][var] = init_dv[name]
+	alloc[prefix[:-1]][var].value = init_dv[name]
 
 #----------------------
 # Build OpenMDAO Model
