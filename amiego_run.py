@@ -336,8 +336,8 @@ fw.top.set_print(False)
 
 # Set initial conditions from best preopt
 alloc['pax_flt'].value = init_dv['pax_flt']
-DVGeo['shape'].value = init_dv['shape']
-DVGeo['twist'].value = init_dv['twist']
+sys_aero_groups['shape'].value = init_dv['shape']
+sys_aero_groups['twist'].value = init_dv['twist']
 for j in range(8):
     root = 'sys_msn%d.' % j
     for var in ['M0', 'h_cp']:
@@ -351,7 +351,7 @@ for j in range(8):
 prob = Problem(impl=PetscImpl)
 prob.root = root = Group()
 root.add('p1', IndepVarComp('flt_day', np.zeros((19, ), dtype=np.int)), promotes=['*'])
-root.add('amd', AMDOptimization(fw, alloc, DVGeo, init_func), promotes=['*'])
+root.add('amd', AMDOptimization(fw, alloc, sys_aero_groups, init_func), promotes=['*'])
 
 prob.driver = AMIEGO_driver()
 prob.driver.cont_opt = AMDDriver(fw)
