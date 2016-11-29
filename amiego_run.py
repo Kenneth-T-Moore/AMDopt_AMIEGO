@@ -328,7 +328,7 @@ for imsn in xrange(num_rt * num_new_ac):
     # Mission design variables get added here.
     # Optimizer only considers the first 8 routes.
     if imsn < 8:
-        print('ken', imsn, num_cp)
+        #print('ken', imsn, num_cp)
         add_quantities_mission(fw, prefix, num_cp, num_pt)
 
 flt_day_init = ac_data['flt_day'].flatten(order='C')
@@ -344,7 +344,7 @@ add_quantities_alloc(fw)
 
 # Final MAUD setup stuff
 fw.init_vectors()
-fw.compute()
+#fw.compute()
 fw.top.set_print(False)
 
 # Set initial conditions from best preopt
@@ -355,6 +355,7 @@ for j in range(8):
     root = 'sys_msn%d.' % j
     for var in ['M0', 'h_cp']:
         name = root + var
+        print(j, alloc[prefix[:-1]][var].value.shape, init_dv[name].shape)
         alloc[prefix[:-1]][var].value = init_dv[name]
 
 #----------------------
