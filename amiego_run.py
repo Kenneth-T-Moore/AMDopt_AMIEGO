@@ -371,6 +371,10 @@ prob.driver.cont_opt = AMDDriver(fw)
 # To save time
 prob.driver.minlp.options['atol'] = 0.1
 prob.driver.minlp.options['local_search'] = True
+prob.driver.minlp.options['penalty_factor'] = 0.5
+prob.driver.minlp.options['maxiter'] = 100000
+prob.driver.minlp.options['maxiter_ubd'] = 10000
+prob.driver.options['ei_tol_rel'] = 0.00001
 
 demand = np.array([   10.,   108.,  1396.,  3145.,   995.,  4067.,   639.,   321.])
 
