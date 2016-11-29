@@ -335,14 +335,14 @@ fw.compute()
 fw.top.set_print(False)
 
 # Set initial conditions from best preopt
-alloc['pax_flt'].value = dv_samp['pax_flt']
-dvcon['shape'].value = dv_samp['shape']
-dvcon['twist'].value = dv_samp['twist']
+alloc['pax_flt'].value = init_dv['pax_flt']
+dvcon['shape'].value = init_dv['shape']
+dvcon['twist'].value = init_dv['twist']
 for j in range(8):
     root = 'sys_msn%d.' % j
     for var in ['M0', 'h_cp']:
 	name = root + var
-	alloc[name].value = dv_samp[name]
+	alloc[name].value = init_dv[name]
 
 #----------------------
 # Build OpenMDAO Model
