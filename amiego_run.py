@@ -60,12 +60,13 @@ class AMDOptimization(Component):
     init_func : dict
         Initial values of obj/constraints - needed just for sizing.
     """
-    def __init__(self, fw, alloc, init_func):
+    def __init__(self, fw, alloc, dvcon, init_func):
         """ Create AMDOptimization instance."""
         super(AMDOptimization, self).__init__()
 
         self.fw = fw
 	self.alloc = alloc
+	self.dvcon = dvcon
 
 	self.iter_count = 0
 
@@ -116,6 +117,9 @@ class AMDOptimization(Component):
 	flt_day_init[3, 1:8] = raw[4:11]
 	flt_day_init[4, :8] = raw[11:19]
         alloc['flt_day'].value = flt_day_init.flatten()
+
+	# Load initial real design values from one of the preopts
+	# Using first point now, which is best.
 
 	# Reinitialize driver with the new values each time.
 	options={'Print file' : 'AMIEGO_%03i' % self.iter_count,
@@ -219,8 +223,8 @@ dv_samp_bad = pickle.load( open( "../good_preopts/dv_samp_w_bad.pkl", "rb" ) )
 #-------------------------------------
 # Warmer Start from Initial Conditions
 #-------------------------------------
-init_dv = pickle.load( open( "../good_preopts/dvs_000.pkl", "rb" ) )
-init_func = pickle.load( open( "../good_preopts/funcs_000.pkl", "rb" ) )
+init_dv = pickle.load( open( "../good_int_preopts/dvs_045.pkl", "rb" ) )
+init_func = pickle.load( open( "../good_int_preopts/funcs_045.pkl", "rb" ) )
 
 DVGeo, DVCon = init_func3(nTwist)
 
@@ -275,11 +279,13 @@ alloc = Allocation('sys_alloc', ac_path=ac_path, rt_data=rt_data,
                    ac_data=ac_data, misc_data=misc_data,
                    interp=interp, yt=yt, num_hi=npt)
 
+dvcon = SysDVCon('sys_dv_con', nTwist=nTwist, nShape=nShape,
+             DVGeo=DVGeo, DVCon=DVCon)
+
 top = Assembly('sys_top', subsystems=[
     IndVar('twist', value=init_dv['twist']),
     IndVar('shape', value=init_dv['shape']),
-    SysDVCon('sys_dv_con', nTwist=nTwist, nShape=nShape,
-             DVGeo=DVGeo, DVCon=DVCon),
+    dvcon,
     sys_aero_groups,
     MultiPtVar('sys_multipt_lift', npt=npt,
                in_name='fc%02i.cl', out_name='CL_hifi'),
@@ -328,6 +334,16 @@ fw.init_vectors()
 fw.compute()
 fw.top.set_print(False)
 
+# Set initial conditions from best preopt
+alloc['pax_flt'].value = dv_samp['pax_flt']
+dvcon['shape'].value = dv_samp['shape']
+dvcon['twist'].value = dv_samp['twist']
+for j in range(8):
+    root = 'sys_msn%d.' % j
+    for var in ['M0', 'h_cp']:
+	name = root + var
+	alloc[name].value = dv_samp[name]
+
 #----------------------
 # Build OpenMDAO Model
 #----------------------
@@ -335,7 +351,7 @@ fw.top.set_print(False)
 prob = Problem(impl=PetscImpl)
 prob.root = root = Group()
 root.add('p1', IndepVarComp('flt_day', np.zeros((19, ), dtype=np.int)), promotes=['*'])
-root.add('amd', AMDOptimization(fw, alloc, init_func), promotes=['*'])
+root.add('amd', AMDOptimization(fw, alloc, dvcon, init_func), promotes=['*'])
 
 prob.driver = AMIEGO_driver()
 prob.driver.cont_opt = AMDDriver(fw)
