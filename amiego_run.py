@@ -347,9 +347,9 @@ fw.compute()
 fw.top.set_print(False)
 
 # Set initial conditions from best preopt
-print('pax_flt before', top['pax_flt'].value)
+print('pax_flt before', alloc['pax_flt'].value)
 alloc['pax_flt'].value = init_dv['pax_flt']
-print('pax_flt after', top['pax_flt'].value)
+print('pax_flt after', alloc['pax_flt'].value)
 print('shape before', top['shape'].value)
 top['shape'].value = init_dv['shape']
 print('shape after', top['shape'].value)
