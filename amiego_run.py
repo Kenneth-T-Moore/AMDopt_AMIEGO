@@ -328,6 +328,7 @@ for imsn in xrange(num_rt * num_new_ac):
     # Mission design variables get added here.
     # Optimizer only considers the first 8 routes.
     if imsn < 8:
+        print('ken', imsn, num_cp)
         add_quantities_mission(fw, prefix, num_cp, num_pt)
 
 flt_day_init = ac_data['flt_day'].flatten(order='C')
@@ -347,22 +348,14 @@ fw.compute()
 fw.top.set_print(False)
 
 # Set initial conditions from best preopt
-print('pax_flt before', alloc['pax_flt'].value)
 alloc['pax_flt'].value = init_dv['pax_flt']
-print('pax_flt after', alloc['pax_flt'].value)
-print('shape before', top['shape'].value)
 top['shape'].value = init_dv['shape']
-print('shape after', top['shape'].value)
-print('twist before', top['twist'].value)
 top['twist'].value = init_dv['twist']
-print('twist after', top['twist'].value)
 for j in range(8):
     root = 'sys_msn%d.' % j
     for var in ['M0', 'h_cp']:
         name = root + var
-        print(name, 'before', alloc[prefix[:-1]][var].value)
         alloc[prefix[:-1]][var].value = init_dv[name]
-        print(name, 'after', alloc[prefix[:-1]][var].value)
 
 #----------------------
 # Build OpenMDAO Model
