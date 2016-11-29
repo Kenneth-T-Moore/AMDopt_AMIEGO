@@ -344,7 +344,7 @@ add_quantities_alloc(fw)
 
 # Final MAUD setup stuff
 fw.init_vectors()
-#fw.compute()
+fw.compute()
 fw.top.set_print(False)
 
 # Set initial conditions from best preopt
