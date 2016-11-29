@@ -60,13 +60,14 @@ class AMDOptimization(Component):
     init_func : dict
         Initial values of obj/constraints - needed just for sizing.
     """
-    def __init__(self, fw, alloc, top, init_func):
+    def __init__(self, fw, alloc, top, init_func, init_dv):
         """ Create AMDOptimization instance."""
         super(AMDOptimization, self).__init__()
 
         self.fw = fw
 	self.alloc = alloc
 	self.top = top
+	self.init_dv = init_dv
 
 	self.iter_count = 0
 
@@ -109,6 +110,8 @@ class AMDOptimization(Component):
         """
         fw = self.fw
 	alloc = self.alloc
+	top = self.top
+	init_dv = self.init_dv
 
         # Pull integer design variables from params and assign them into fw
 	flt_day_init = numpy.zeros((num_ac, num_rt))
@@ -120,6 +123,15 @@ class AMDOptimization(Component):
 
 	# Load initial real design values from one of the preopts
 	# Using first point now, which is best.
+	# Set initial conditions from best preopt
+	alloc['pax_flt'].value = init_dv['pax_flt']
+	top['shape'].value = init_dv['shape']
+	top['twist'].value = init_dv['twist']
+	for j in range(8):
+	    root = 'sys_msn%d.' % j
+	    for var in ['M0', 'h_cp']:
+		name = root + var
+		alloc[prefix[:-1]][var].value = init_dv[name]
 
 	# Reinitialize driver with the new values each time.
 	options={'Print file' : 'AMIEGO_%03i' % self.iter_count,
@@ -351,7 +363,7 @@ for j in range(8):
 prob = Problem(impl=PetscImpl)
 prob.root = root = Group()
 root.add('p1', IndepVarComp('flt_day', np.zeros((19, ), dtype=np.int)), promotes=['*'])
-root.add('amd', AMDOptimization(fw, alloc, top, init_func), promotes=['*'])
+root.add('amd', AMDOptimization(fw, alloc, top, init_func, init_dv), promotes=['*'])
 
 prob.driver = AMIEGO_driver()
 prob.driver.cont_opt = AMDDriver(fw)
