@@ -131,7 +131,7 @@ class AMDOptimization(Component):
             root = 'sys_msn%d.' % j
             for var in ['M0', 'h_cp']:
                 name = root + var
-                alloc[prefix[:-1]][var].value = init_dv[name].flatten()
+                alloc[root[:-1]][var].value = init_dv[name].flatten()
 
         # Reinitialize driver with the new values each time.
         options={'Print file' : 'AMIEGO_%03i' % self.iter_count,
@@ -355,8 +355,7 @@ for j in range(8):
     root = 'sys_msn%d.' % j
     for var in ['M0', 'h_cp']:
         name = root + var
-        print(j, alloc[prefix[:-1]][var].value.shape, init_dv[name].shape)
-        alloc[prefix[:-1]][var].value = init_dv[name]
+        alloc[root[:-1]][var].value = init_dv[name]
 
 #----------------------
 # Build OpenMDAO Model
