@@ -60,13 +60,13 @@ class AMDOptimization(Component):
     init_func : dict
         Initial values of obj/constraints - needed just for sizing.
     """
-    def __init__(self, fw, alloc, dvgeo, init_func):
+    def __init__(self, fw, alloc, top, init_func):
         """ Create AMDOptimization instance."""
         super(AMDOptimization, self).__init__()
 
         self.fw = fw
 	self.alloc = alloc
-	self.dvgeo = dvgeo
+	self.top = top
 
 	self.iter_count = 0
 
@@ -342,7 +342,7 @@ for j in range(8):
     root = 'sys_msn%d.' % j
     for var in ['M0', 'h_cp']:
 	name = root + var
-	alloc[name].value = init_dv[name]
+	alloc[prefix[:-1]][var] = init_dv[name]
 
 #----------------------
 # Build OpenMDAO Model
@@ -351,7 +351,7 @@ for j in range(8):
 prob = Problem(impl=PetscImpl)
 prob.root = root = Group()
 root.add('p1', IndepVarComp('flt_day', np.zeros((19, ), dtype=np.int)), promotes=['*'])
-root.add('amd', AMDOptimization(fw, alloc, sys_aero_groups, init_func), promotes=['*'])
+root.add('amd', AMDOptimization(fw, alloc, top, init_func), promotes=['*'])
 
 prob.driver = AMIEGO_driver()
 prob.driver.cont_opt = AMDDriver(fw)
