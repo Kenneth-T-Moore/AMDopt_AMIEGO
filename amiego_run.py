@@ -22,7 +22,7 @@ from MAUD.solvers import *
 from Allocation.allocation_amiego import Allocation, add_quantities_alloc, load_params
 from init_func import *
 from MissionAnalysis.RMTS15 import setup_drag_rmts
-from MissionAnalysis.mission import Mission, add_quantities_mission
+from MissionAnalysis.mission_10 import Mission, add_quantities_mission
 from sumad import *
 
 
@@ -372,7 +372,7 @@ prob.driver.cont_opt = AMDDriver(fw)
 # To save time
 prob.driver.minlp.options['atol'] = 0.1
 prob.driver.minlp.options['local_search'] = True
-prob.driver.minlp.options['penalty_factor'] = 0.5
+prob.driver.minlp.options['penalty_factor'] = 0.0
 prob.driver.minlp.options['maxiter'] = 100000
 prob.driver.minlp.options['maxiter_ubd'] = 10000
 prob.driver.options['ei_tol_rel'] = 0.00001
