@@ -4,7 +4,7 @@
 #$ -pe ompi 140
 #
 # The name of the job:
-#$ -N test_AMIEGO
+#$ -N AMIEGO
 #
 # Start from the current working directory:
 #$ -cwd

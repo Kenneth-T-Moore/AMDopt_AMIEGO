@@ -372,6 +372,7 @@ prob.driver.cont_opt = AMDDriver(fw)
 # To save time
 prob.driver.minlp.options['atol'] = 0.1
 prob.driver.minlp.options['local_search'] = True
+#prob.driver.minlp.aggressive_splitting = False
 prob.driver.minlp.options['penalty_factor'] = 0.0
 prob.driver.minlp.options['maxiter'] = 100000
 prob.driver.minlp.options['maxiter_ubd'] = 10000

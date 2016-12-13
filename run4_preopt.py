@@ -238,9 +238,9 @@ fw = Framework()
 fw.init_systems(top)
 
 fw.add_quantity('input', 'twist', indices=range(nTwist),
-                lower=-10, upper=10, scale=1000.)
+                lower=-10, upper=10, scale=5000.)
 fw.add_quantity('input', 'shape', indices=range(nShape),
-                lower=-0.5, upper=0.5, scale=1000.0)
+                lower=-0.5, upper=0.5, scale=5000.0)
 fw.add_quantity('output', 'vol_con', indices=[0],
                 lower=1.0, upper=3.0, group='g:pax_con')
 fw.add_quantity('output', 'thk_con', indices=range(100),
@@ -291,7 +291,7 @@ pax_upper, demand, avail = get_bounds(alloc)
 num_rt = 128
 num_ac = 5
 
-raw = numpy.loadtxt('halton_int.dat')
+raw = numpy.loadtxt('halton19_int.dat')
 flt_day_init = numpy.zeros((num_ac, num_rt))
 
 turnaround = 1.0
@@ -312,7 +312,7 @@ print("Begin")
 for irun in range(raw.shape[0]):
 
     # Skip whatever we already have done:
-    #if irun < 33:
+    #if irun < 26:
     #    continue
     #if irun in [0, 4, 6, 20, 26, 27, 28, 29, 30]:
     #    continue
