@@ -22,7 +22,7 @@ from MAUD.driver_pyoptsparse import *
 from init_func import *
 from Allocation.allocation_amiego import Allocation, add_quantities_alloc, load_params
 from MissionAnalysis.RMTS15 import setup_drag_rmts
-from MissionAnalysis.mission import Mission, add_quantities_mission
+from MissionAnalysis.mission_10 import Mission, add_quantities_mission
 
 import sys
 
