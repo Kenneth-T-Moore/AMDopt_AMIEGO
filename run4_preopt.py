@@ -22,7 +22,7 @@ from MAUD.driver_pyoptsparse import *
 from init_func import *
 from Allocation.allocation_amiego import Allocation, add_quantities_alloc, load_params
 from MissionAnalysis.RMTS15 import setup_drag_rmts
-from MissionAnalysis.mission_10 import Mission, add_quantities_mission
+from MissionAnalysis.mission import Mission, add_quantities_mission
 
 import sys
 
@@ -238,9 +238,9 @@ fw = Framework()
 fw.init_systems(top)
 
 fw.add_quantity('input', 'twist', indices=range(nTwist),
-                lower=-10, upper=10, scale=5000.)
+                lower=-10, upper=10, scale=1000.)
 fw.add_quantity('input', 'shape', indices=range(nShape),
-                lower=-0.5, upper=0.5, scale=5000.0)
+                lower=-0.5, upper=0.5, scale=1000.0)
 fw.add_quantity('output', 'vol_con', indices=[0],
                 lower=1.0, upper=3.0, group='g:pax_con')
 fw.add_quantity('output', 'thk_con', indices=range(100),
@@ -317,9 +317,9 @@ for irun in range(raw.shape[0]):
     #if irun in [0, 4, 6, 20, 26, 27, 28, 29, 30]:
     #    continue
 
-    flt_day_init[1, :8] = raw[irun,   : 8]
-    flt_day_init[3, :8] = raw[irun,  8:16]
-    flt_day_init[4, :8] = raw[irun, 16:24]
+    flt_day_init[1, 1:5] = raw[irun, :4]
+    flt_day_init[3, 1:8] = raw[irun, 4:11]
+    flt_day_init[4, :8] = raw[irun, 11:19]
 
     for iac in xrange(num_ac):
         for irt in xrange(num_rt):
