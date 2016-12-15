@@ -68,9 +68,9 @@ class SysDVCon(ExplicitComponent):
         nShape = self.kwargs['nShape']
 
         DVCon = self.kwargs['DVCon']
-        jacs = DVCon.linearCon['lete_constraint_0'].jac
+        jacs = DVCon.linearCon['DVCon1_lete_constraint_0'].jac
         self.lete_jac0 = jacs['shape']
-        jacs = DVCon.linearCon['lete_constraint_1'].jac
+        jacs = DVCon.linearCon['DVCon1_lete_constraint_1'].jac
         self.lete_jac1 = jacs['shape']
 
         self.add_input('twist', range(nTwist))
@@ -94,8 +94,8 @@ class SysDVCon(ExplicitComponent):
         DVCon.evalFunctions(func_dict)
 
         shape = self.pvec['shape'][:, 0]
-        self.uvec['vol_con'][0, 0] = func_dict['volume_constraint_0']
-        self.uvec['thk_con'][:, 0] = func_dict['thickness_constraints_0']
+        self.uvec['vol_con'][0, 0] = func_dict['DVCon1_volume_constraint_0']
+        self.uvec['thk_con'][:, 0] = func_dict['DVCon1_thickness_constraints_0']
         self.uvec['lete0_con'][:, 0] = self.lete_jac0.dot(shape)
         self.uvec['lete1_con'][:, 0] = self.lete_jac1.dot(shape)
 
@@ -106,8 +106,8 @@ class SysDVCon(ExplicitComponent):
         DVCon.evalFunctionsSens(sens_dict)
 
         for vin in ['twist', 'shape']:
-            self.jacobians['vol_con', vin] = sens_dict['volume_constraint_0'][vin]
-            self.jacobians['thk_con', vin] = sens_dict['thickness_constraints_0'][vin]
+            self.jacobians['vol_con', vin] = sens_dict['DVCon1_volume_constraint_0'][vin]
+            self.jacobians['thk_con', vin] = sens_dict['DVCon1_thickness_constraints_0'][vin]
 
         self.jacobians['lete0_con', 'shape'] = self.lete_jac0
         self.jacobians['lete1_con', 'shape'] = self.lete_jac1
