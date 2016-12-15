@@ -143,9 +143,9 @@ fw = Framework()
 fw.init_systems(top)
 
 fw.add_quantity('input', 'twist', indices=range(nTwist),
-                lower=-10, upper=10, scale=100.0)
+                lower=-10, upper=10, scale=1.0)
 fw.add_quantity('input', 'shape', indices=range(nShape),
-                lower=-0.5, upper=0.5, scale=100.0)
+                lower=-0.5, upper=0.5, scale=10.0)
 fw.add_quantity('output', 'vol_con', indices=[0],
                 lower=1.0, upper=3.0, group='g:pax_con')
 fw.add_quantity('output', 'thk_con', indices=range(100),
@@ -157,6 +157,7 @@ for imsn in xrange(num_rt * num_new_ac):
     num_pt = alloc[prefix[:-1]].kwargs['mission_params']['num_pt']
 
     alloc[prefix[:-1]]['h_cp'].value = numpy.loadtxt('msn_profiles/msn_%i.dat'%imsn)
+    alloc[prefix[:-1]]['M0'].value = 0.82
 
     # Mission design variables get added here.
     # Optimizer only considers the first 8 routes.
@@ -184,8 +185,8 @@ alloc['pax_flt'].value = pax_flt_init
 
 add_quantities_alloc(fw)
 
-options={'Major feasibility tolerance' : 1e-6,
-         'Major optimality tolerance' : 5e-5}
+options={'Major feasibility tolerance' : 1e-5,
+         'Major optimality tolerance' : 1e-3}
 
 driver = DriverPyOptSparse(options=options)
 
