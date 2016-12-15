@@ -157,7 +157,7 @@ for imsn in xrange(num_rt * num_new_ac):
     num_pt = alloc[prefix[:-1]].kwargs['mission_params']['num_pt']
 
     alloc[prefix[:-1]]['h_cp'].value = numpy.loadtxt('msn_profiles/msn_%i.dat'%imsn)
-    alloc[prefix[:-1]]['M0'].value = 0.82
+    alloc[prefix[:-1]]['M0'].value = 0.82*numpy.ones((1, ))
 
     # Mission design variables get added here.
     # Optimizer only considers the first 8 routes.
