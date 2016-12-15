@@ -3,8 +3,10 @@ import numpy
 from mpi4py import MPI
 from baseclasses import *
 #from tripan import TRIPAN
-from sumb import SUMB
+#from sumb import SUMB
+from adflow import ADFLOW as SUMB
 from pywarp import *
+from pywarpustruct import *
 from pygeo import *
 from pyspline import *
 from multipoint import *
@@ -48,7 +50,8 @@ def init_func2(comm, DVGeo):
     CFDSolver.setDVGeo(DVGeo)
 
     if args_mode == 'euler' or args_mode == 'rans':
-        mesh = MBMesh(options=meshOptions, comm=comm)
+        #mesh = MBMesh(options=meshOptions, comm=comm)
+        mesh = USMesh(options=meshOptions, comm=comm)
         CFDSolver.setMesh(mesh)
 
     span = 14

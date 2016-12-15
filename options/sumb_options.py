@@ -21,11 +21,11 @@ aeroOptions = {
     'miniterationnum':50,
     
     # Convergence Parameters
-    'L2Convergence':1e-6,
+    'L2Convergence':1e-12,
     'L2ConvergenceCoarse':1e-2,
     
     # Adjoint Parameters
-    'adjointL2Convergence':1e-7,
+    'adjointL2Convergence':1e-10,
     'ADPC':True,
     'adjointMaxIter': 500,
     'adjointSubspaceSize':150, 

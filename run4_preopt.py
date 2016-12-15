@@ -240,9 +240,9 @@ fw = Framework()
 fw.init_systems(top)
 
 fw.add_quantity('input', 'twist', indices=range(nTwist),
-                lower=-10, upper=10, scale=10.)
+                lower=-10, upper=10, scale=1.)
 fw.add_quantity('input', 'shape', indices=range(nShape),
-                lower=-0.5, upper=0.5, scale=100.0)
+                lower=-0.5, upper=0.5, scale=10.0)
 fw.add_quantity('output', 'vol_con', indices=[0],
                 lower=1.0, upper=3.0, group='g:pax_con')
 fw.add_quantity('output', 'thk_con', indices=range(100),
@@ -342,8 +342,8 @@ for irun in range(raw.shape[0]):
 
         #options={'Verify level':3}
         options={'Print file' : 'SNOPT_print_%03i' % irun,
-                 'Major feasibility tolerance' : 1e-6,
-                 'Major optimality tolerance' : 5e-5}
+                 'Major feasibility tolerance' : 1e-5,
+                 'Major optimality tolerance' : 1e-3}
         driver = DriverPyOptSparse(options=options)
         fw.init_driver(driver)
         fw.top.set_print(False)
