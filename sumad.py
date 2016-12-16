@@ -19,10 +19,6 @@ class SysAeroSolver(ExplicitComponent):
         if self.comm is not None:
             self.kwargs['CFDSolver'] = self.kwargs['init_func'](self.comm, self.kwargs['DVGeo'])
 
-	self.failed_state = False
-	self.twist = -1234.5*numpy.ones(nTwist)
-	self.shape = -1234.5*numpy.ones(nShape)
-
     def oper_execute(self):
         ap = self.kwargs['ap']
         DVGeo = self.kwargs['DVGeo']
@@ -33,43 +29,19 @@ class SysAeroSolver(ExplicitComponent):
         dv_dict['shape'] = self.pvec['shape'][:, 0]
         dv_dict[ap.DVNames['alpha']] = self.pvec['alpha'][0, 0]
 
-	print("This is for Justin")
-        print('twist', dv_dict['twist'])
-        print('shape', dv_dict['shape'])
-
         DVGeo.setDesignVars(dv_dict)
         ap.setDesignVars(dv_dict)
 
-	twist_same = numpy.linalg.norm(self.twist - dv_dict['twist']) < 1e-15
-	shape_same = numpy.linalg.norm(self.shape - dv_dict['shape']) < 1e-15
-	if twist_same and shape_same:
-	    if self.failed_state:
-	        self.rvec.oper_set_const(1.0)	        
-	    return
-
-	self.twist = numpy.array(dv_dict['twist'])
-	self.shape = numpy.array(dv_dict['shape'])
-
-	func_dict = {}
+        func_dict = {}
         CFDSolver(ap)
-	CFDSolver.checkSolutionFailure(ap, func_dict)
-	if 'fail' in func_dict and func_dict['fail']:
-	    self.failed_state = True
-	    CFDSolver.resetFlow(ap)
-	    return
-	else:
-	    self.failed_state = False
-            CFDSolver.evalFunctions(ap, func_dict)
-	    for name in ['cl', 'cd']:
-	        self.uvec[name][0, 0] = func_dict[ap[name]]
+        CFDSolver.evalFunctions(ap, func_dict)
 
-        #CFDSolver.checkSolutionFailure(ap, func_dict)
-        #if 'fail' in func_dict:
-        #    if func_dict['fail']:
-        #        self.rvec.oper_set_const(1.0)
+        if 'fail' in func_dict:
+            if func_dict['fail']:
+                self.rvec.oper_set_const(1.0)
 
-	# for name in ['cl', 'cd']:
-	#     self.uvec[name][0, 0] = func_dict[ap[name]]
+        for name in ['cl', 'cd']:
+            self.uvec[name][0, 0] = func_dict[ap[name]]
 
     def oper_jacobians(self):
         ap = self.kwargs['ap']

@@ -320,10 +320,16 @@ print("Begin")
 for irun in range(raw.shape[0]):
 
     # Skip whatever we already have done:
-    #if irun < 25:
+    if not irun%2:
+        continue
+
+    # Justin: uncomment this, and comment above for second run.
+    #if irun%2:
     #    continue
-    #if irun in [0, 4, 6, 20, 26, 27, 28, 29, 30]:
-    #    continue
+
+    # This is for Justin's NAS run.
+    if irun < 24:
+        continue
 
     flt_day_init[1, 1:5] = raw[irun, :4]
     flt_day_init[3, 1:8] = raw[irun, 4:11]
