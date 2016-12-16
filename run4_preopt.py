@@ -258,7 +258,7 @@ for imsn in xrange(num_rt * num_new_ac):
     #in_name = '../AMDopt/msn_profiles/hist_0_%i.hst'
     #db = SqliteDict(in_name%imsn)
     #alloc[prefix[:-1]]['M0'].value = db[db['last']]['xuser']['M0']
-    alloc[prefix[:-1]]['M0'].value = .82
+    alloc[prefix[:-1]]['M0'].value = .82*numpy.ones((1, ))
     if do_missions and imsn < 8:
         add_quantities_mission(fw, prefix, num_cp, num_pt)
 
