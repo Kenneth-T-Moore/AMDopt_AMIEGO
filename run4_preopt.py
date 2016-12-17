@@ -253,7 +253,7 @@ for imsn in xrange(num_rt * num_new_ac):
     num_cp = alloc[prefix[:-1]].kwargs['mission_params']['num_cp']
     num_pt = alloc[prefix[:-1]].kwargs['mission_params']['num_pt']
 
-    #alloc[prefix[:-1]]['h_cp'].value = numpy.loadtxt('msn_profiles/msn_%i.dat'%imsn)
+    alloc[prefix[:-1]]['h_cp'].value = numpy.loadtxt('msn_profiles/msn_%i.dat'%imsn)
 
     #in_name = '../AMDopt/msn_profiles/hist_0_%i.hst'
     #db = SqliteDict(in_name%imsn)

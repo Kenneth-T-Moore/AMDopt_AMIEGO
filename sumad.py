@@ -35,7 +35,7 @@ class SysAeroSolver(ExplicitComponent):
         func_dict = {}
         CFDSolver(ap)
         CFDSolver.evalFunctions(ap, func_dict)
-        CFDSolver.checkSolutionFailure(ap, func_dict)
+        #CFDSolver.checkSolutionFailure(ap, func_dict)
 
         if 'fail' in func_dict:
             if func_dict['fail']:
@@ -49,16 +49,17 @@ class SysAeroSolver(ExplicitComponent):
         DVGeo = self.kwargs['DVGeo']
         CFDSolver = self.kwargs['CFDSolver']
 
-        sens_dict = {}
-        CFDSolver.evalFunctionsSens(ap, sens_dict)
+        if not ap.fatalFail:
+            sens_dict = {}
+            CFDSolver.evalFunctionsSens(ap, sens_dict)
 
-        for vout in ['cl', 'cd']:
-            vin = 'twist'
-            self.jacobians[vout, vin] = sens_dict[ap[vout]][vin]
-            vin = 'shape'
-            self.jacobians[vout, vin] = sens_dict[ap[vout]][vin]
-            vin = 'alpha'
-            self.jacobians[vout, vin] = sens_dict[ap[vout]][ap.DVNames[vin]]
+            for vout in ['cl', 'cd']:
+                vin = 'twist'
+                self.jacobians[vout, vin] = sens_dict[ap[vout]][vin]
+                vin = 'shape'
+                self.jacobians[vout, vin] = sens_dict[ap[vout]][vin]
+                vin = 'alpha'
+                self.jacobians[vout, vin] = sens_dict[ap[vout]][ap.DVNames[vin]]
 
 
 
