@@ -35,6 +35,7 @@ class SysAeroSolver(ExplicitComponent):
         func_dict = {}
         CFDSolver(ap)
         CFDSolver.evalFunctions(ap, func_dict)
+        CFDSolver.checkSolutionFailure(ap, func_dict)
 
         if 'fail' in func_dict:
             if func_dict['fail']:
