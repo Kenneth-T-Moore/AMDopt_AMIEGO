@@ -353,7 +353,7 @@ for irun in range(raw.shape[0]):
         for j in range(8):
             root = 'sys_msn%d.' % j
             alloc[root[:-1]]['M0'].value = .82*numpy.ones((1, ))
-            alloc[root[:-1]]['h_cp'].value = numpy.loadtxt('msn_profiles/msn_%i.dat'%imsn)
+            alloc[root[:-1]]['h_cp'].value = numpy.loadtxt('msn_profiles/msn_%i.dat'%j)
 
         alloc['flt_day'].value = flt_day_init.flatten()
 
