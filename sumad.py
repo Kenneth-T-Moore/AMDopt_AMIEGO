@@ -20,6 +20,8 @@ class SysAeroSolver(ExplicitComponent):
             self.kwargs['CFDSolver'] = self.kwargs['init_func'](self.comm, self.kwargs['DVGeo'])
 
     def oper_execute(self):
+        print("SUMAD start.")
+
         ap = self.kwargs['ap']
         DVGeo = self.kwargs['DVGeo']
         CFDSolver = self.kwargs['CFDSolver']
@@ -32,6 +34,7 @@ class SysAeroSolver(ExplicitComponent):
         DVGeo.setDesignVars(dv_dict)
         ap.setDesignVars(dv_dict)
 
+	print("Hey Justin CFD", ap.mach, ap.altitude)
         func_dict = {}
         CFDSolver(ap)
         CFDSolver.evalFunctions(ap, func_dict)
@@ -39,7 +42,23 @@ class SysAeroSolver(ExplicitComponent):
 
         if 'fail' in func_dict:
             if func_dict['fail']:
+                print("Ken, Fail in Func Dict")
                 self.rvec.oper_set_const(1.0)
+
+        # If it fails this way, reset flow and try again.
+        #if ap.solveFailed and not ap.fatalFail:
+        if CFDSolver.getResNorms()[2] > 1.0e-7 and not ap.fatalFail:
+            func_dict = {}
+            print("Ken, Retrying", ap.solveFailed, ap.fatalFail)
+            print(CFDSolver.getResNorms())
+            CFDSolver.resetFlow(ap)
+            CFDSolver(ap)
+            CFDSolver.evalFunctions(ap, func_dict)
+        
+        #if ap.fatalFail or ap.solveFailed:
+        if CFDSolver.getResNorms()[2] > 1.0e-7 or ap.fatalFail:
+            self.rvec.oper_set_const(1.0)
+            print("Ken, Failed a Second Time")
 
         for name in ['cl', 'cd']:
             self.uvec[name][0, 0] = func_dict[ap[name]]
@@ -49,7 +68,8 @@ class SysAeroSolver(ExplicitComponent):
         DVGeo = self.kwargs['DVGeo']
         CFDSolver = self.kwargs['CFDSolver']
 
-        if not ap.fatalFail:
+        #if (not ap.fatalFail) and (not ap.solveFailed):
+        if not (CFDSolver.getResNorms()[2] > 1.0e-7 or ap.fatalFail):
             sens_dict = {}
             CFDSolver.evalFunctionsSens(ap, sens_dict)
 
