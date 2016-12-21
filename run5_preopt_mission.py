@@ -269,9 +269,9 @@ fw = Framework()
 fw.init_systems(top)
 
 fw.add_quantity('input', 'twist', indices=range(nTwist),
-                lower=-10, upper=10, scale=1.)
+                lower=-10, upper=10, scale=10.)
 fw.add_quantity('input', 'shape', indices=range(nShape),
-                lower=-0.5, upper=0.5, scale=10.0)
+                lower=-0.5, upper=0.5, scale=100.0)
 fw.add_quantity('output', 'vol_con', indices=[0],
                 lower=1.0, upper=3.0, group='g:pax_con')
 fw.add_quantity('output', 'thk_con', indices=range(100),
@@ -353,8 +353,9 @@ for irun in range(raw.shape[0]):
     if not irun%2:
         continue
 
-    #if irun < 4:
-    #    continue
+    if irun < 24:
+        continue
+
 
     flt_day_init[1, 1:5] = raw[irun, :4]
     flt_day_init[3, 1:8] = raw[irun, 4:11]

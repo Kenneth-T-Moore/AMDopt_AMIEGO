@@ -12,10 +12,10 @@ aeroOptions = {
     # Common Parameters
     'CFL':CFL,
     'CFLCoarse':CFL,
-    'MGCycle':MGCYCLE,
-    'MGStartLevel':MGSTART,
+    'MGCycle':'3v',
+    'MGStartLevel':1,
     'nCyclesCoarse':500,
-    'nCycles' :1000,
+    'nCycles' :3000,
     'nsubiterturb':3,
     'useNKSolver':useNK,
     'miniterationnum':50,
@@ -23,7 +23,8 @@ aeroOptions = {
     # Convergence Parameters
     'L2Convergence':1e-12,
     'L2ConvergenceCoarse':1e-2,
-    
+    'nkadpc': False, 
+
     # Adjoint Parameters
     'adjointL2Convergence':1e-10,
     'ADPC':True,

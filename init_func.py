@@ -14,7 +14,7 @@ from pyoptsparse import Optimization, OPT
 
 
 args_mode = 'euler'
-args_output = 'res/'
+args_output = '/u/jsgray/scratch/amiego/nlp/'
 args_shape = 0
 args_opt = 'snopt'
 args_optOptions = {}
