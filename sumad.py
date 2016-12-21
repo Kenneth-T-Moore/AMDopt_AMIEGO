@@ -58,6 +58,7 @@ class SysAeroSolver(ExplicitComponent):
         #if ap.fatalFail or ap.solveFailed:
         if CFDSolver.getResNorms()[2] > 1.0e-7 or ap.fatalFail:
             self.rvec.oper_set_const(1.0)
+            CFDSolver.resetFlow(ap)
             print("Ken, Failed a Second Time")
 
         for name in ['cl', 'cd']:
