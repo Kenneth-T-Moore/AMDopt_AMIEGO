@@ -47,7 +47,7 @@ class SysAeroSolver(ExplicitComponent):
 
         # If it fails this way, reset flow and try again.
         #if ap.solveFailed and not ap.fatalFail:
-        if numpy.isnan(CFDSolver.getResNorms()[2]) or (CFDSolver.getResNorms()[2] > 1.0e-7 and not ap.fatalFail):
+        if (numpy.isnan(CFDSolver.getResNorms()[2]) or CFDSolver.getResNorms()[2] > 1.0e-7) and not ap.fatalFail:
             func_dict = {}
             print("Ken, Retrying", ap.solveFailed, ap.fatalFail)
             print(CFDSolver.getResNorms())
