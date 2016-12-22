@@ -388,6 +388,7 @@ for irun in range(raw.shape[0]):
 
         #options={'Verify level':3}
         options={'Print file' : 'SNOPT_print_%03i' % irun,
+                 'Summary file' : 'SNOPT_summary_%03i' % irun,
                  'Major feasibility tolerance' : 1e-5,
                  'Major optimality tolerance' : 1e-3}
         driver = DriverPyOptSparse(options=options)
@@ -425,10 +426,10 @@ for irun in range(raw.shape[0]):
         con_val = ac_con - avail
         pax[iac, irt] = (seat_cap[iac] * demand[irt] )/ sum_over_iac(seat[iac] * \
                          flight_day_init[iac,irt])
-        #This is a fair	assumption given our cost also stays constant in the objective equ.	
+        #This is a fair	assumption given our cost also stays constant in the objective equ.
         #So we should be able to calculate profit (obj) quite accurately.
         profit[iac, irt] = pax[iac, irt] * flight_day_init[iac,ir]*price[irt] - cost[iac, irt]*flight_day_init[iac, irt]
-        obj_val	= sum(sum(profit)) 
+        obj_val	= sum(sum(profit))
         print("USE THESE")
         print('Cons', con_val)
         print('Obj', obj_val)
